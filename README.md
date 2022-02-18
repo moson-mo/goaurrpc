@@ -14,7 +14,7 @@ When a client makes a request an SQL statement is generated and a query is being
 A pretty normal scenario in web application.
 
 While the /rpc endpoint itself is implemented in asynchronous way, it does not seem to scale down to the database level.  
-The queries are performed synchronously it seems hence only once CPU core can be utilized.  
+The queries are performed synchronously it seems, hence only once CPU core can be utilized.  
 Could be that Arch is running multiple instances of aurweb (utilizing the same DB backend) to mitigate that issue though.  
 
 Here an example while 10 concurrent requests are being performed.  
