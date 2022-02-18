@@ -41,6 +41,7 @@ type PackageInfo struct {
 	Groups         []string    `json:"Groups"`
 }
 
+// data for rate limit check
 type RateLimit struct {
 	Requests    int
 	WindowStart time.Time

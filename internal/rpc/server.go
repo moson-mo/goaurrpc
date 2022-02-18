@@ -158,12 +158,10 @@ func (s *server) isRateLimited(r *http.Request) bool {
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 	la, ok := s.memDB.RateLimits[ip]
 	if ok {
+		la.Requests++
+		s.memDB.RateLimits[ip] = la
 		if la.Requests > s.settings.RateLimit {
 			return true
-		} else {
-			la.Requests++
-			s.memDB.RateLimits[ip] = la
-			fmt.Println("Rate limit increased", ip, "->", la.Requests)
 		}
 	} else {
 		fmt.Println("Rate limit added", ip)
