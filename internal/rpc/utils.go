@@ -1,7 +1,10 @@
 package rpc
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
 	"net/url"
 )
 
@@ -61,6 +64,35 @@ func getArgument(values url.Values) string {
 		return values.Get("arg")
 	}
 	return values.Get("arg[]")
+}
+
+// generate JSON error and return to client
+func writeError(code int, message string, w http.ResponseWriter) {
+	e := RpcResult{
+		Error: message,
+		Type:  "error",
+	}
+	b, err := json.Marshal(e)
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "This should not happen")
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(b)
+}
+
+// generate JSON string from RpcResult and return to client
+func writeResult(result *RpcResult, w http.ResponseWriter) {
+	b, err := json.Marshal(result)
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "This should not happen")
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(b)
 }
 
 func sliceContains(s []string, e string) bool {

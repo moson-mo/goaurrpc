@@ -1,18 +1,39 @@
 package memdb
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"io/ioutil"
+	"os"
+	"strings"
 
 	"github.com/moson-mo/goaurrpc/internal/aur"
 )
 
 // loads package data from local JSON file
 func LoadDbFromFile(path string) (*MemoryDB, error) {
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
+	var b []byte
+	if strings.HasSuffix(path, ".gz") {
+		gz, err := os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+		r, err := gzip.NewReader(gz)
+		if err != nil {
+			return nil, err
+		}
+		b, err = ioutil.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		var err error
+		b, err = ioutil.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return bytesToMemoryDB(&b)
 }
 
