@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// construct new server and start listening for requests
-	s, err := rpc.New(settings)
+	s, err := rpc.New(*settings)
 	if err != nil {
 		panic(err)
 	}

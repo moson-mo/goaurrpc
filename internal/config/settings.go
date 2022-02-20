@@ -7,6 +7,7 @@ import (
 
 // rpc server settings
 type Settings struct {
+	Port            int
 	AurFileLocation string
 	MaxResults      int
 	RefreshInterval int // in seconds
@@ -17,6 +18,7 @@ type Settings struct {
 // default settings for our server
 func DefaultSettings() *Settings {
 	s := Settings{
+		Port:            10666,
 		AurFileLocation: "https://aur.archlinux.org/packages-meta-ext-v1.json.gz",
 		MaxResults:      5000,
 		RefreshInterval: 10 * 60, // refresh every 10 minutes

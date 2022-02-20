@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -18,14 +19,13 @@ type server struct {
 	memDB      *db.MemoryDB
 	mut        sync.RWMutex
 	mutLimit   sync.RWMutex
-	settings   *config.Settings
+	settings   config.Settings
 	RateLimits map[string]RateLimit
 }
 
 // Creates a new server and immediately loads package data into memory
-func New(settings *config.Settings) (*server, error) {
+func New(settings config.Settings) (*server, error) {
 	s := server{
-		mut:        sync.RWMutex{},
 		RateLimits: make(map[string]RateLimit),
 	}
 	s.settings = settings
@@ -73,7 +73,7 @@ func (s *server) Listen() error {
 
 	// Listen for requests on /rpc
 	http.HandleFunc("/rpc", s.rpcHandler)
-	return http.ListenAndServe(":10666", nil)
+	return http.ListenAndServe(":"+strconv.Itoa(s.settings.Port), nil)
 }
 
 // handles client connections

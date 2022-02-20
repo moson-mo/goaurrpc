@@ -34,7 +34,7 @@ func LoadDbFromFile(path string) (*MemoryDB, error) {
 		}
 	}
 
-	return bytesToMemoryDB(&b)
+	return bytesToMemoryDB(b)
 }
 
 // loads package data from web hosted file (packages-meta-ext-v1.json.gz)
@@ -43,14 +43,14 @@ func LoadDbFromUrl(url string) (*MemoryDB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return bytesToMemoryDB(&b)
+	return bytesToMemoryDB(b)
 }
 
 // constructs MemoryDB struct
-func bytesToMemoryDB(b *[]byte) (*MemoryDB, error) {
+func bytesToMemoryDB(b []byte) (*MemoryDB, error) {
 	db := MemoryDB{}
 	var records []PackageInfo
-	err := json.Unmarshal(*b, &records)
+	err := json.Unmarshal(b, &records)
 	if err != nil {
 		return nil, err
 	}
