@@ -42,34 +42,8 @@ func New(settings config.Settings) (*server, error) {
 
 // Creates a rest API endpoint and starts listening for requests
 func (s *server) Listen() error {
-	// Starts a go routine that continuesly updates refreshes the package data
-	go func() {
-		for {
-			time.Sleep(time.Duration(s.settings.RefreshInterval) * time.Second)
-			fmt.Println("Reloading package data...")
-			start := time.Now()
-			err := s.reloadData()
-			if err != nil {
-				fmt.Println("Error reloading data: ", err)
-				break
-			}
-			elapsed := time.Since(start)
-			fmt.Println("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")
-		}
-	}()
-
-	// remove rate limits if older than 24h
-	go func() {
-		time.Sleep(5 * time.Minute)
-		s.mutLimit.Lock()
-		for ip, rl := range s.RateLimits {
-			if time.Since(rl.WindowStart).Hours() > 23 {
-				delete(s.RateLimits, ip)
-				fmt.Println("Removed rate limit for", ip)
-			}
-		}
-		s.mutLimit.Unlock()
-	}()
+	// start period tasks
+	s.startJobs()
 
 	// Listen for requests on /rpc
 	http.HandleFunc("/rpc", s.rpcHandler)
@@ -210,4 +184,36 @@ func (s *server) reloadData() error {
 	defer s.mut.Unlock()
 	s.memDB = ptr
 	return nil
+}
+
+// start go-routines for periodic tasks
+func (s *server) startJobs() {
+	// starts a go routine that continuesly refreshes the package data
+	go func() {
+		for {
+			time.Sleep(time.Duration(s.settings.RefreshInterval) * time.Second)
+			fmt.Println("Reloading package data...")
+			start := time.Now()
+			err := s.reloadData()
+			if err != nil {
+				fmt.Println("Error reloading data: ", err)
+				break
+			}
+			elapsed := time.Since(start)
+			fmt.Println("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")
+		}
+	}()
+
+	// starts a go routine that remove rate limits if older than 24h
+	go func() {
+		time.Sleep(5 * time.Minute)
+		s.mutLimit.Lock()
+		for ip, rl := range s.RateLimits {
+			if time.Since(rl.WindowStart).Hours() > 23 {
+				delete(s.RateLimits, ip)
+				fmt.Println("Removed rate limit for", ip)
+			}
+		}
+		s.mutLimit.Unlock()
+	}()
 }
