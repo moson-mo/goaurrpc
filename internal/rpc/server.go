@@ -91,7 +91,14 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	qstr := r.URL.Query()
+	// check if got a GET or POST request
+	var qstr url.Values
+	if r.Method == "GET" {
+		qstr = r.URL.Query()
+	} else {
+		r.ParseForm()
+		qstr = r.PostForm
+	}
 	t := qstr.Get("type")
 
 	// if we don't get any query parameters, return documentation
