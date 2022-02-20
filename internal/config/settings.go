@@ -20,7 +20,7 @@ func DefaultSettings() *Settings {
 		AurFileLocation: "https://aur.archlinux.org/packages-meta-ext-v1.json.gz",
 		MaxResults:      5000,
 		RefreshInterval: 10 * 60, // refresh every 10 minutes
-		RateLimit:       5000,
+		RateLimit:       4000,
 		LoadFromFile:    false,
 	}
 	return &s

@@ -1,6 +1,10 @@
 package rpc
 
-import "gopkg.in/guregu/null.v4"
+import (
+	"time"
+
+	"gopkg.in/guregu/null.v4"
+)
 
 // data structure that is being sent back
 type RpcResult struct {
@@ -55,4 +59,10 @@ type SearchRecord struct {
 	URL            null.String `json:"URL"`
 	URLPath        null.String `json:"URLPath"`
 	Version        string      `json:"Version"`
+}
+
+// data for rate limit check
+type RateLimit struct {
+	Requests    int
+	WindowStart time.Time
 }

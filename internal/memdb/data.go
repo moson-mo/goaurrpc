@@ -1,8 +1,6 @@
 package memdb
 
 import (
-	"time"
-
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -10,7 +8,6 @@ import (
 type MemoryDB struct {
 	Packages     map[string]PackageInfo
 	PackageNames []string
-	RateLimits   map[string]RateLimit
 }
 
 // data structure holding data for a single package
@@ -39,10 +36,4 @@ type PackageInfo struct {
 	CheckDepends   []string    `json:"CheckDepends"`
 	Replaces       []string    `json:"Replaces"`
 	Groups         []string    `json:"Groups"`
-}
-
-// data for rate limit check
-type RateLimit struct {
-	Requests    int
-	WindowStart time.Time
 }

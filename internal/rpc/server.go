@@ -15,16 +15,18 @@ import (
 
 // API server struct
 type server struct {
-	memDB    *db.MemoryDB
-	mut      sync.RWMutex
-	mutLimit sync.RWMutex
-	settings *config.Settings
+	memDB      *db.MemoryDB
+	mut        sync.RWMutex
+	mutLimit   sync.RWMutex
+	settings   *config.Settings
+	RateLimits map[string]RateLimit
 }
 
 // Creates a new server and immediately loads package data into memory
 func New(settings *config.Settings) (*server, error) {
 	s := server{
-		mut: sync.RWMutex{},
+		mut:        sync.RWMutex{},
+		RateLimits: make(map[string]RateLimit),
 	}
 	s.settings = settings
 
@@ -59,12 +61,14 @@ func (s *server) Listen() error {
 	// remove rate limits if older than 24h
 	go func() {
 		time.Sleep(5 * time.Minute)
-		for ip, rl := range s.memDB.RateLimits {
+		s.mutLimit.Lock()
+		for ip, rl := range s.RateLimits {
 			if time.Since(rl.WindowStart).Hours() > 23 {
-				delete(s.memDB.RateLimits, ip)
+				delete(s.RateLimits, ip)
 				fmt.Println("Removed rate limit for", ip)
 			}
 		}
+		s.mutLimit.Unlock()
 	}()
 
 	// Listen for requests on /rpc
@@ -160,17 +164,22 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 func (s *server) isRateLimited(r *http.Request) bool {
 	s.mutLimit.Lock()
 	defer s.mutLimit.Unlock()
+
+	// RateLimit of 0 -> Skip check
+	if s.settings.RateLimit == 0 {
+		return false
+	}
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-	la, ok := s.memDB.RateLimits[ip]
+	la, ok := s.RateLimits[ip]
 	if ok {
 		la.Requests++
-		s.memDB.RateLimits[ip] = la
+		s.RateLimits[ip] = la
 		if la.Requests > s.settings.RateLimit {
 			return true
 		}
 	} else {
 		fmt.Println("Rate limit added", ip)
-		s.memDB.RateLimits[ip] = db.RateLimit{
+		s.RateLimits[ip] = RateLimit{
 			Requests:    1,
 			WindowStart: time.Now(),
 		}

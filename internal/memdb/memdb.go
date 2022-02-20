@@ -48,9 +48,7 @@ func LoadDbFromUrl(url string) (*MemoryDB, error) {
 
 // constructs MemoryDB struct
 func bytesToMemoryDB(b *[]byte) (*MemoryDB, error) {
-	db := MemoryDB{
-		RateLimits: make(map[string]RateLimit),
-	}
+	db := MemoryDB{}
 	var records []PackageInfo
 	err := json.Unmarshal(*b, &records)
 	if err != nil {
