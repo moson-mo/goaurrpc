@@ -278,6 +278,23 @@ Waiting:       22   54  22.1     49     185
 Total:         22   56  23.0     51     186
 ``` 
 
+### Concerns
+
+- No live data, since the data is being cached in memory and only reloaded every 10 minutes:  
+
+Data could be reloaded more frequently.  
+Loading the data from a JSON file or directly from the AUR webserver takes around 2 seconds.
+Re-loading data every minute or even in a 10 second interval would be perfectly possible.  
+That would only make sense if data is being retrieved directly from the DB though, the JSON file is only exported every 10 minutes...  
+
+- Memory consumption?  
+
+After startup, once all data is loaded the amount of memory that is allocated for the process is ~230 MB  
+When data is being re-loaded periodically, the consumption increases temporarily to about ~430 MB   
+until the "old set of data" is being garbage-collected.
+Sometimes this might take a while. During my tests I have never seen to get bigger than ~500 MB  
+(we could forcefully run the GC, but that does not really make sense.)
+
 ### How to build
 
 - Download repository `git clone https://github.com/moson-mo/goaurrpc.git`
