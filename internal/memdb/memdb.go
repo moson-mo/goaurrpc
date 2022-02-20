@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/moson-mo/goaurrpc-poc/internal/aur"
+	"github.com/moson-mo/goaurrpc/internal/aur"
 )
 
 // loads package data from local JSON file

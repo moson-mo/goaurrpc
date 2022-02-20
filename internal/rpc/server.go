@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/moson-mo/goaurrpc-poc/internal/config"
-	db "github.com/moson-mo/goaurrpc-poc/internal/memdb"
+	"github.com/moson-mo/goaurrpc/internal/config"
+	db "github.com/moson-mo/goaurrpc/internal/memdb"
 )
 
 // API server struct

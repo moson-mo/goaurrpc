@@ -278,6 +278,19 @@ Waiting:       22   54  22.1     49     185
 Total:         22   56  23.0     51     186
 ``` 
 
+### How to build
+
+- Download repository `git clone https://github.com/moson-mo/goaurrpc.git`
+- `cd goaurrpc`
+- Build with: `go build cmd/goaurrpc/goaurrpc.go`
+- This will create a binary `goaurrpc`
+
+### Config file
+
+See `sample.conf` file. The config file can be loaded by specifying "-c" parameter when running goaurrpc.  
+For example: `./goaurrpc -c sample.conf`.
+If this parameter is not passed, the default config will be used (sample.conf contains the defaults).  
+
 ### Notes
 
 Again this is just a quick and dirty POC implementation written in a couple of days.  

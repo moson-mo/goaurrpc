@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/moson-mo/goaurrpc-poc/internal/config"
-	"github.com/moson-mo/goaurrpc-poc/internal/rpc"
+	"github.com/moson-mo/goaurrpc/internal/config"
+	"github.com/moson-mo/goaurrpc/internal/rpc"
 )
 
 func main() {

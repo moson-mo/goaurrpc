@@ -1,4 +1,4 @@
-module github.com/moson-mo/goaurrpc-poc
+module github.com/moson-mo/goaurrpc
 
 go 1.17
 
