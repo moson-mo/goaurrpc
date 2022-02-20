@@ -94,6 +94,13 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	qstr := r.URL.Query()
 	t := qstr.Get("type")
 
+	// if we don't get any query parameters, return documentation
+	if len(qstr) == 0 {
+		w.Header().Add("Content-Type", "text/html; charset=UTF-8")
+		fmt.Fprintln(w, doc)
+		return
+	}
+
 	// validate query parameters
 	err := validateQueryString(qstr)
 	if err != nil {
@@ -175,7 +182,6 @@ func (s *server) isRateLimited(r *http.Request) bool {
 
 // generate JSON error and return to client
 func writeError(code int, message string, w http.ResponseWriter) {
-	w.WriteHeader(code)
 	e := RpcResult{
 		Error: message,
 		Type:  "error",
@@ -187,6 +193,7 @@ func writeError(code int, message string, w http.ResponseWriter) {
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code)
 	w.Write(b)
 }
 

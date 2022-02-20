@@ -280,12 +280,12 @@ Total:         22   56  23.0     51     186
 
 ### Concerns
 
-- No live data, since the data is being cached in memory and only reloaded every 10 minutes:  
+- No live data, since the data is being cached in memory and only reloaded every 5 minutes:  
 
 Data could be reloaded more frequently.  
 Loading the data from a JSON file or directly from the AUR webserver takes around 2 seconds.
 Re-loading data every minute or even in a 10 second interval would be perfectly possible.  
-That would only make sense if data is being retrieved directly from the DB though, the JSON file is only exported every 10 minutes...  
+That would only make sense if data is being retrieved directly from the DB though, the JSON file is only exported every 5 minutes...  
 
 - Memory consumption?  
 
@@ -313,3 +313,7 @@ If this parameter is not passed, the default config will be used (sample.conf co
 Again this is just a quick and dirty POC implementation written in a couple of days.  
 Needs some more work to get it "production-grade" ready :wink:
 
+### Test endpoint
+
+A goaurrpc endpoint can be found here for testing:
+`http://server.moson.rocks:10666/rpc`
