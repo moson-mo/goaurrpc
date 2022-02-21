@@ -9,7 +9,7 @@ Main goal is to increase the performance of REST API.
 
 ### Areas of improvement
 
-In the current version (aurweb v6.0.13 was used for comparison/benchmarking), the bottleneck seems to be the database access.  
+In the current version (aurweb v6.0.18 was used for comparison/benchmarking), the bottleneck seems to be the database access.  
 When a client makes a request an SQL statement is generated and a query is being run against the mariadb server.  
 A pretty normal scenario in web application.
 
@@ -49,15 +49,162 @@ That pretty much matches the current numbers in the AUR.
 A small modification has been made to also generate descriptions for the packages otherwise they'd be empty in the DB (which has some effect on certain /rpc requests)  
 This data was exported and used for the comparison, so that both, the FastAPI and goaurrpc have the same basis and can be compared properly.
 
+The cron docker container for the FastAPI solution has been completely disabled so that no export or maintenance jobs are running while we do the benchmarking.
+
 The benchmarks are being run from a Zen2 8-core notebook. The connection between the machines is 1 GBit/s Ethernet.
 
 ### Benchmarks
 
 Benchmarks were performed with the Apache Benchmark tool with a total of 1000 requests, running 10 threads in parallel.
+5 worker threads were used for FastAPI.  
+During the tests, CPU consumption on the host was pretty close to the maximum for both solutions (> 350% usage, 4-cores)  
 
-To be published again.  
-Previous benchmarks were done with just 2 FastAPI worker processes.  
-New benchmark comparison with 5 workers (should be sufficient in a 4-core scenario) will be re-done soon.  
+#### Results
+
+* "suggest" lookup: **~85x** faster (**1550.07** requests per seconds vs. **18.37** r/s)
+* "info" lookup: **~35x** faster (**9326.27** r/s vs. **268.50** r/s)
+* "search" lookup: **~10x** faster (**160.64** r/s vs. **16.35** r/s) 
+
+Now these benchmarks have been performed on a pretty low-spec machine.  
+Doing the same on a more performing machine should show even better results.   
+
+##### Type "suggest"
+
+- FastAPI
+
+```
+Server Software:        uvicorn
+Server Hostname:        192.168.0.11
+Server Port:            18000
+
+Document Path:          /rpc?v=5&type=suggest&arg=attest
+Document Length:        107 bytes
+
+Concurrency Level:      10
+Time taken for tests:   54.442 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      502000 bytes
+HTML transferred:       107000 bytes
+Requests per second:    18.37 [#/sec] (mean)
+Time per request:       544.421 [ms] (mean)
+Time per request:       54.442 [ms] (mean, across all concurrent requests)
+Transfer rate:          9.00 [Kbytes/sec] received
+```
+
+- goaurrpc
+
+```
+Server Software:        
+Server Hostname:        192.168.0.11
+Server Port:            10666
+
+Document Path:          /rpc?v=5&type=suggest&arg=attest
+Document Length:        107 bytes
+
+Concurrency Level:      10
+Time taken for tests:   0.645 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      216000 bytes
+HTML transferred:       107000 bytes
+Requests per second:    1550.07 [#/sec] (mean)
+Time per request:       6.451 [ms] (mean)
+Time per request:       0.645 [ms] (mean, across all concurrent requests)
+Transfer rate:          326.97 [Kbytes/sec] received
+```
+
+##### Type "info"
+
+- FastAPI
+
+```
+Server Software:        uvicorn
+Server Hostname:        192.168.0.11
+Server Port:            18000
+
+Document Path:          /rpc?v=5&type=info&arg=attest
+Document Length:        804 bytes
+
+Concurrency Level:      10
+Time taken for tests:   3.724 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      1199000 bytes
+HTML transferred:       804000 bytes
+Requests per second:    268.50 [#/sec] (mean)
+Time per request:       37.244 [ms] (mean)
+Time per request:       3.724 [ms] (mean, across all concurrent requests)
+Transfer rate:          314.39 [Kbytes/sec] received
+```
+
+- goaurrpc
+
+```
+Server Software:        
+Server Hostname:        192.168.0.11
+Server Port:            10666
+
+Document Path:          /rpc?v=5&type=info&arg=attest
+Document Length:        804 bytes
+
+Concurrency Level:      10
+Time taken for tests:   0.107 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      913000 bytes
+HTML transferred:       804000 bytes
+Requests per second:    9326.27 [#/sec] (mean)
+Time per request:       1.072 [ms] (mean)
+Time per request:       0.107 [ms] (mean, across all concurrent requests)
+Transfer rate:          8315.32 [Kbytes/sec] received
+```
+
+##### Type "search"
+
+- FastAPI
+
+```
+Server Software:        uvicorn
+Server Hostname:        192.168.0.11
+Server Port:            18000
+
+Document Path:          /rpc?v=5&type=search&arg=attest
+Document Length:        3211 bytes
+
+Concurrency Level:      10
+Time taken for tests:   61.175 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      3607000 bytes
+HTML transferred:       3211000 bytes
+Requests per second:    16.35 [#/sec] (mean)
+Time per request:       611.748 [ms] (mean)
+Time per request:       61.175 [ms] (mean, across all concurrent requests)
+Transfer rate:          57.58 [Kbytes/sec] received
+```
+
+- goaurrpc
+
+```
+Server Software:        
+Server Hostname:        192.168.0.11
+Server Port:            10666
+
+Document Path:          /rpc?v=5&type=search&arg=attest
+Document Length:        3211 bytes
+
+Concurrency Level:      10
+Time taken for tests:   6.225 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      3299000 bytes
+HTML transferred:       3211000 bytes
+Requests per second:    160.64 [#/sec] (mean)
+Time per request:       62.250 [ms] (mean)
+Time per request:       6.225 [ms] (mean, across all concurrent requests)
+Transfer rate:          517.54 [Kbytes/sec] received
+``` 
 
 ### Concerns
 
