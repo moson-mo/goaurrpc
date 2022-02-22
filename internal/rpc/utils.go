@@ -51,9 +51,7 @@ func getArgumentList(values url.Values) []string {
 	if values.Get("arg") != "" {
 		args = append(args, values.Get("arg"))
 	} else {
-		for _, v := range values["arg[]"] {
-			args = append(args, v)
-		}
+		args = append(args, values["arg[]"]...)
 	}
 	return args
 }

@@ -128,6 +128,9 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 			}
 		}
 	}
+	sort.Slice(found, func(i, j int) bool {
+		return found[i].Name < found[j].Name
+	})
 	for _, pkg := range found {
 		sr := SearchRecord{
 			Description:    pkg.Description,
