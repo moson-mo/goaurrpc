@@ -3,10 +3,8 @@
 #### An implementation of the [aurweb](https://gitlab.archlinux.org/archlinux/aurweb) (v6) - /rpc - REST API service in go
 
 This project implements the /rpc endpoints (REST API) as described [here](https://aur.archlinux.org/rpc/), as well as the "suggest" type.  
-For the moment it should be considered being a proof-of-concept.  
-While it should be fully functional, it still needs a bit more love (writing test, etc.) :wink:  
 
-Main goal is to increase the performance of REST API.  
+Main goal is to increase the performance.  
 
 ### Areas of improvement
 
@@ -237,12 +235,7 @@ See `sample.conf` file. The config file can be loaded by specifying "-c" paramet
 For example: `./goaurrpc -c sample.conf`.
 If this parameter is not passed, the default config will be used (sample.conf contains the defaults).  
 
-### Notes
-
-Again this is just a quick and dirty POC implementation written in a couple of days.  
-Needs some more work to get it "production-grade" ready :wink:
-
 ### Test endpoint
 
-A goaurrpc endpoint can be found here for testing:
-`http://server.moson.rocks:10666/rpc`
+A goaurrpc endpoint can be found here for testing:  
+[Test instance](http://server.moson.rocks:10666/rpc)
