@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
+
+	"gopkg.in/guregu/null.v4"
 )
 
 // The allowed query types
@@ -32,7 +35,7 @@ func validateQueryString(values url.Values) error {
 	if values.Get("type") == "" {
 		return errors.New("No request type/data specified.")
 	}
-	if !sliceContains(queryTypes, values.Get("type")) {
+	if !inSlice(queryTypes, values.Get("type")) {
 		return errors.New("Incorrect request type specified.")
 	}
 	if !hasArg && !hasArgArr {
@@ -65,10 +68,12 @@ func getArgument(values url.Values) string {
 }
 
 // generate JSON error and return to client
-func writeError(code int, message string, w http.ResponseWriter) {
+func writeError(code int, message string, version int, w http.ResponseWriter) {
 	e := RpcResult{
-		Error: message,
-		Type:  "error",
+		Error:   message,
+		Type:    "error",
+		Results: make([]interface{}, 0),
+		Version: null.NewInt(int64(version), version != 0),
 	}
 	b, err := json.Marshal(e)
 	if err != nil {
@@ -83,6 +88,10 @@ func writeError(code int, message string, w http.ResponseWriter) {
 
 // generate JSON string from RpcResult and return to client
 func writeResult(result *RpcResult, w http.ResponseWriter) {
+	// set number of records
+	if result.Resultcount == 0 {
+		result.Results = make([]interface{}, 0)
+	}
 	b, err := json.Marshal(result)
 	if err != nil {
 		w.WriteHeader(500)
@@ -93,7 +102,7 @@ func writeResult(result *RpcResult, w http.ResponseWriter) {
 	w.Write(b)
 }
 
-func sliceContains(s []string, e string) bool {
+func inSlice(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
 			return true
@@ -102,9 +111,9 @@ func sliceContains(s []string, e string) bool {
 	return false
 }
 
-func mapContains(s map[string]string, e string) bool {
-	for a, _ := range s {
-		if a == e {
+func sliceContainsBeginsWith(s []string, e string) bool {
+	for _, a := range s {
+		if strings.HasPrefix(a, e) {
 			return true
 		}
 	}

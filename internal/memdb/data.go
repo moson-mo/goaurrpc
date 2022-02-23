@@ -4,13 +4,13 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-// data structe which holds our package data
+// MemoryDB is a data structe which holds our package data
 type MemoryDB struct {
 	Packages     map[string]PackageInfo
 	PackageNames []string
 }
 
-// data structure holding data for a single package
+// PackageInfo is a data structure holding data for a single package
 type PackageInfo struct {
 	ID             int         `json:"ID"`
 	Name           string      `json:"Name"`

@@ -1,17 +1,21 @@
 package rpc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
+	"os/signal"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/moson-mo/goaurrpc/internal/config"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
+	"gopkg.in/guregu/null.v4"
 )
 
 // API server struct
@@ -20,14 +24,18 @@ type server struct {
 	mut        sync.RWMutex
 	mutLimit   sync.RWMutex
 	settings   config.Settings
+	stop       chan os.Signal
 	RateLimits map[string]RateLimit
 }
 
-// Creates a new server and immediately loads package data into memory
+// New creates a new server and immediately loads package data into memory
 func New(settings config.Settings) (*server, error) {
 	s := server{
 		RateLimits: make(map[string]RateLimit),
+		stop:       make(chan os.Signal, 1),
 	}
+	signal.Notify(s.stop, os.Interrupt)
+
 	s.settings = settings
 
 	// load data
@@ -40,25 +48,39 @@ func New(settings config.Settings) (*server, error) {
 	return &s, nil
 }
 
-// Creates a rest API endpoint and starts listening for requests
+// Listen creates a rest API endpoint and starts listening for requests
 func (s *server) Listen() error {
 	// start period tasks
 	s.startJobs()
 
-	// Listen for requests on /rpc
-	http.HandleFunc("/rpc", s.rpcHandler)
-	return http.ListenAndServe(":"+strconv.Itoa(s.settings.Port), nil)
+	// routes
+	mux := http.NewServeMux()
+	mux.HandleFunc("/rpc", s.rpcHandler)
+
+	srv := http.Server{
+		Addr:    ":" + strconv.Itoa(s.settings.Port),
+		Handler: mux,
+	}
+
+	// shut down if we get the interrupt signal
+	go func() {
+		<-s.stop
+
+		fmt.Println("Server is shutting down...")
+		srv.Shutdown(context.Background())
+	}()
+
+	// Listen for requests
+	return srv.ListenAndServe()
+}
+
+func (s *server) Stop() {
+	s.stop <- os.Interrupt
 }
 
 // handles client connections
 func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Client connected:", r.RemoteAddr, "->", r.URL)
-
-	// rate limit check
-	if s.isRateLimited(r) {
-		writeError(429, "Rate limit reached", w)
-		return
-	}
 
 	// check if got a GET or POST request
 	var qstr url.Values
@@ -69,6 +91,14 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		qstr = r.PostForm
 	}
 	t := qstr.Get("type")
+	v := qstr.Get("v")
+	version, _ := strconv.Atoi(v)
+
+	// rate limit check
+	if s.isRateLimited(r) {
+		writeError(429, "Rate limit reached", version, w)
+		return
+	}
 
 	// if we don't get any query parameters, return documentation
 	if len(qstr) == 0 {
@@ -80,7 +110,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	// validate query parameters
 	err := validateQueryString(qstr)
 	if err != nil {
-		writeError(200, err.Error(), w)
+		writeError(200, err.Error(), version, w)
 		return
 	}
 
@@ -116,19 +146,17 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s.mut.RUnlock()
 
-	// set number of records
-	result.Resultcount = len(result.Results)
-	if result.Resultcount == 0 {
-		result.Results = make([]interface{}, 0)
-	}
-
 	// don't return data if we exceed max number of results
+	result.Resultcount = len(result.Results)
 	if result.Resultcount > s.settings.MaxResults {
 		result.Error = "Too many package results."
 		result.Resultcount = 0
 		result.Results = nil
 		result.Type = "error"
 	}
+
+	// set version number
+	result.Version = null.NewInt(int64(version), version != 0)
 
 	// return JSON to client
 	writeResult(&result, w)
@@ -204,9 +232,9 @@ func (s *server) startJobs() {
 		}
 	}()
 
-	// starts a go routine that remove rate limits if older than 24h
+	// starts a go routine that removes rate limits if older than 24h
 	go func() {
-		time.Sleep(5 * time.Minute)
+		time.Sleep(time.Duration(s.settings.RateLimitCleanupInterval) * time.Second)
 		s.mutLimit.Lock()
 		for ip, rl := range s.RateLimits {
 			if time.Since(rl.WindowStart).Hours() > 23 {

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 
 	"github.com/moson-mo/goaurrpc/internal/config"
 	"github.com/moson-mo/goaurrpc/internal/rpc"
@@ -27,9 +28,13 @@ func main() {
 	}
 
 	// construct new server and start listening for requests
+	fmt.Println("Server is starting...")
 	s, err := rpc.New(*settings)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(s.Listen())
+	if err = s.Listen(); err != http.ErrServerClosed {
+		fmt.Println(err)
+	}
+	fmt.Println("Server stopped.")
 }

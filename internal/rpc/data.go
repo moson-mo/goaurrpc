@@ -6,16 +6,16 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-// data structure that is being sent back
+// RpcResult is a data structure that is being sent back
 type RpcResult struct {
 	Error       string        `json:"error,omitempty"`
 	Resultcount int           `json:"resultcount"`
 	Results     []interface{} `json:"results"`
 	Type        string        `json:"type"`
-	Version     int           `json:"version"`
+	Version     null.Int      `json:"version"`
 }
 
-// data structure for "search" API calls (results)
+// InfoRecord is a data structure for "search" API calls (results)
 type InfoRecord struct {
 	CheckDepends   []string    `json:"CheckDepends,omitempty"`
 	Conflicts      []string    `json:"Conflicts,omitempty"`
@@ -43,7 +43,7 @@ type InfoRecord struct {
 	Version        string      `json:"Version"`
 }
 
-// data structure for "info" API calls (results)
+// SearchRecord is a data structure for "info" API calls (results)
 type SearchRecord struct {
 	Description    null.String `json:"Description"`
 	FirstSubmitted int         `json:"FirstSubmitted"`
@@ -61,7 +61,7 @@ type SearchRecord struct {
 	Version        string      `json:"Version"`
 }
 
-// data for rate limit check
+// RateLimit holds data for the rate limit checking
 type RateLimit struct {
 	Requests    int
 	WindowStart time.Time

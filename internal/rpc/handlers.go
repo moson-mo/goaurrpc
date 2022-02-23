@@ -11,8 +11,7 @@ import (
 // construct result for "info" calls
 func (s *server) rpcInfo(values url.Values) RpcResult {
 	rr := RpcResult{
-		Type:    "multiinfo",
-		Version: 5,
+		Type: "multiinfo",
 	}
 	packages := getArgumentList(values)
 
@@ -64,8 +63,7 @@ func (s *server) rpcInfo(values url.Values) RpcResult {
 // construct result for "search" calls
 func (s *server) rpcSearch(values url.Values) RpcResult {
 	rr := RpcResult{
-		Type:    "search",
-		Version: 5,
+		Type: "search",
 	}
 
 	// if not specified use name and description for search
@@ -86,8 +84,8 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 	// perform search according to the "by" parameter
 	switch by {
 	case "name":
-		for k, pkg := range s.memDB.Packages {
-			if k == search {
+		for _, pkg := range s.memDB.Packages {
+			if strings.Contains(pkg.Name, search) {
 				found = append(found, pkg)
 			}
 		}
@@ -99,25 +97,25 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		}
 	case "depends":
 		for _, pkg := range s.memDB.Packages {
-			if sliceContains(pkg.Depends, search) {
+			if inSlice(pkg.Depends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "makedepends":
 		for _, pkg := range s.memDB.Packages {
-			if sliceContains(pkg.MakeDepends, search) {
+			if inSlice(pkg.MakeDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "optdepends":
 		for _, pkg := range s.memDB.Packages {
-			if sliceContains(pkg.OptDepends, search) {
+			if sliceContainsBeginsWith(pkg.OptDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "checkdepends":
 		for _, pkg := range s.memDB.Packages {
-			if sliceContains(pkg.CheckDepends, search) {
+			if inSlice(pkg.CheckDepends, search) {
 				found = append(found, pkg)
 			}
 		}

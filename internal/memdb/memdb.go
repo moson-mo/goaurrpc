@@ -10,7 +10,7 @@ import (
 	"github.com/moson-mo/goaurrpc/internal/aur"
 )
 
-// loads package data from local JSON file
+// LoadDbFromFile loads package data from local JSON file
 func LoadDbFromFile(path string) (*MemoryDB, error) {
 	var b []byte
 	if strings.HasSuffix(path, ".gz") {
@@ -37,7 +37,7 @@ func LoadDbFromFile(path string) (*MemoryDB, error) {
 	return bytesToMemoryDB(b)
 }
 
-// loads package data from web hosted file (packages-meta-ext-v1.json.gz)
+// LoadDbFromUrl loads package data from web hosted file (packages-meta-ext-v1.json.gz)
 func LoadDbFromUrl(url string) (*MemoryDB, error) {
 	b, err := aur.DownloadPackageData(url)
 	if err != nil {
