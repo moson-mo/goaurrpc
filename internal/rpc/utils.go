@@ -67,6 +67,20 @@ func getArgument(values url.Values) string {
 	return values.Get("arg[]")
 }
 
+func getBy(values url.Values) string {
+	// if not specified use name and description for search
+	by := "name-desc"
+	if values.Get("by") != "" {
+		by = values.Get("by")
+	}
+
+	// if type is msearch we search by maintainer
+	if values.Get("type") == "msearch" {
+		by = "maintainer"
+	}
+	return by
+}
+
 // generate JSON error and return to client
 func writeError(code int, message string, version int, w http.ResponseWriter) {
 	e := RpcResult{

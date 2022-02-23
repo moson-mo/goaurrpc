@@ -63,21 +63,10 @@ func (s *server) rpcInfo(values url.Values) RpcResult {
 // construct result for "search" calls
 func (s *server) rpcSearch(values url.Values) RpcResult {
 	rr := RpcResult{
-		Type: "search",
+		Type: values.Get("type"),
 	}
 
-	// if not specified use name and description for search
-	var by = "name-desc"
-	if values.Get("by") != "" {
-		by = values.Get("by")
-	}
-
-	// if type is msearch we search by maintainer
-	if values.Get("type") == "msearch" {
-		by = "maintainer"
-		rr.Type = "msearch"
-	}
-
+	by := getBy(values)
 	found := []db.PackageInfo{}
 	search := getArgument(values)
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Download package data file from AUR; decompression happens automatically
+// DownloadPackageData downloads package data file from AUR; decompression happens automatically
 func DownloadPackageData(address string) ([]byte, error) {
 	r, err := http.Get(address)
 	if err != nil {
