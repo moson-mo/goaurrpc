@@ -1,4 +1,5 @@
 #!/bin/sh
 
-go test ./... -covermode=count -coverprofile=cover.out fmt
-go tool cover -func=cover.out -o=cover.out
+go test ./... -covermode=count -coverprofile=coverage.out fmt
+go tool cover -func=coverage.out -o=test_coverage.out
+go tool cover -html=coverage.out

@@ -3,7 +3,6 @@ package rpc
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -67,6 +66,7 @@ func getArgument(values url.Values) string {
 	return values.Get("arg[]")
 }
 
+// get search "by" parameter
 func getBy(values url.Values) string {
 	// if not specified use name and description for search
 	by := "name-desc"
@@ -89,12 +89,7 @@ func writeError(code int, message string, version int, w http.ResponseWriter) {
 		Results: make([]interface{}, 0),
 		Version: null.NewInt(int64(version), version != 0),
 	}
-	b, err := json.Marshal(e)
-	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "This should not happen")
-		return
-	}
+	b, _ := json.Marshal(e)
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(b)
@@ -106,12 +101,7 @@ func writeResult(result *RpcResult, w http.ResponseWriter) {
 	if result.Resultcount == 0 {
 		result.Results = make([]interface{}, 0)
 	}
-	b, err := json.Marshal(result)
-	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "This should not happen")
-		return
-	}
+	b, _ := json.Marshal(result)
 	w.Header().Add("Content-Type", "application/json")
 	w.Write(b)
 }

@@ -225,7 +225,6 @@ func (s *server) startJobs() {
 			err := s.reloadData()
 			if err != nil {
 				fmt.Println("Error reloading data: ", err)
-				break
 			}
 			elapsed := time.Since(start)
 			fmt.Println("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")

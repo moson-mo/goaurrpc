@@ -90,11 +90,14 @@ func (suite *RpcTestSuite) SetupSuite() {
 // run before each test
 func (suite *RpcTestSuite) SetupTest() {
 	// reset settings
-	suite.srv.RateLimits = map[string]RateLimit{}
-	suite.srv.settings.RateLimit = 4000
-	suite.srv.settings.RateLimitCleanupInterval = 600
-	suite.srv.settings.RefreshInterval = 600
-	suite.srv.settings.MaxResults = 5000
+	suite.srv.settings = config.Settings{
+		Port:            10666,
+		AurFileLocation: "../../test_data/test_packages.json.gz",
+		MaxResults:      5000,
+		RefreshInterval: 600,
+		RateLimit:       4000,
+		LoadFromFile:    true,
+	}
 }
 
 func (suite *RpcTestSuite) TearDownSuite() {
@@ -169,13 +172,19 @@ func (suite *RpcTestSuite) TestListen() {
 		err := suite.srv.Listen()
 		suite.Equal(http.ErrServerClosed, err)
 	}()
-	time.Sleep(2 * time.Second)
+	suite.srv.RateLimits["test"] = RateLimit{WindowStart: time.Now().AddDate(0, 0, -2), Requests: 1}
+	time.Sleep(600 * time.Millisecond)
+	suite.srv.settings.AurFileLocation = "https://github.com/moson-mo/goaurrpc/raw/main/test_data/test_packages.json"
+	suite.srv.settings.LoadFromFile = false
+	time.Sleep(600 * time.Millisecond)
+	suite.Empty(suite.srv.RateLimits) // check if rate limit got removed
 	suite.srv.Stop()
 
-	suite.srv.settings.Port = 99999
+	suite.srv.settings.Port = 99999 // use impossible port to trigger an error
 	suite.NotNil(suite.srv.Listen())
 }
 
+// run our tests
 func TestRPCTestSuite(t *testing.T) {
 	suite.Run(t, new(RpcTestSuite))
 }
