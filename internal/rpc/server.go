@@ -26,6 +26,7 @@ type server struct {
 	settings   config.Settings
 	stop       chan os.Signal
 	RateLimits map[string]RateLimit
+	lastmod    string
 }
 
 // New creates a new server and immediately loads package data into memory
@@ -196,6 +197,7 @@ func (s *server) reloadData() error {
 		we don't want to stress the aur server
 	*/
 	var ptr *db.MemoryDB
+	var lmod string
 	var err error
 	if s.settings.LoadFromFile {
 		ptr, err = db.LoadDbFromFile(s.settings.AurFileLocation)
@@ -203,7 +205,7 @@ func (s *server) reloadData() error {
 			return err
 		}
 	} else {
-		ptr, err = db.LoadDbFromUrl(s.settings.AurFileLocation)
+		ptr, lmod, err = db.LoadDbFromUrl(s.settings.AurFileLocation, s.lastmod)
 		if err != nil {
 			return err
 		}
@@ -211,6 +213,7 @@ func (s *server) reloadData() error {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	s.memDB = ptr
+	s.lastmod = lmod
 	return nil
 }
 
@@ -224,7 +227,12 @@ func (s *server) startJobs() {
 			start := time.Now()
 			err := s.reloadData()
 			if err != nil {
-				fmt.Println("Error reloading data: ", err)
+				if err.Error() == "not modified" {
+					fmt.Println("Reload skipped. File has not been modified.")
+				} else {
+					fmt.Println("Error reloading data: ", err)
+				}
+				continue
 			}
 			elapsed := time.Since(start)
 			fmt.Println("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")

@@ -38,12 +38,16 @@ func LoadDbFromFile(path string) (*MemoryDB, error) {
 }
 
 // LoadDbFromUrl loads package data from web hosted file (packages-meta-ext-v1.json.gz)
-func LoadDbFromUrl(url string) (*MemoryDB, error) {
-	b, err := aur.DownloadPackageData(url)
+func LoadDbFromUrl(url string, lastmod string) (*MemoryDB, string, error) {
+	b, lastmod, err := aur.DownloadPackageData(url, lastmod)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return bytesToMemoryDB(b)
+	memdb, err := bytesToMemoryDB(b)
+	if err != nil {
+		return nil, "", err
+	}
+	return memdb, lastmod, nil
 }
 
 // constructs MemoryDB struct

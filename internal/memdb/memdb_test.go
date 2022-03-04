@@ -37,7 +37,7 @@ func TestLoadDbFromUrl(t *testing.T) {
 	urls := []string{"https://github.com/moson-mo/goaurrpc/raw/main/test_data/test_packages.json"}
 
 	for _, url := range urls {
-		db, err := LoadDbFromUrl(url)
+		db, _, err := LoadDbFromUrl(url, "")
 		assert.Nil(t, err)
 		assert.NotNil(t, db)
 		assert.Equal(t, 666, len(db.PackageNames), "Number of packages don't match")
@@ -46,7 +46,7 @@ func TestLoadDbFromUrl(t *testing.T) {
 	brokenUrls := []string{"https://sdfsdfhahdfagdfgdgdfgdg.agag/raw/main/test_data/test_packages.json"}
 
 	for _, url := range brokenUrls {
-		db, err := LoadDbFromUrl(url)
+		db, _, err := LoadDbFromUrl(url, "")
 		assert.NotNil(t, err)
 		assert.Nil(t, db)
 	}
