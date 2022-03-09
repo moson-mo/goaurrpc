@@ -6,8 +6,11 @@ import (
 
 // MemoryDB is a data structe which holds our package data
 type MemoryDB struct {
-	Packages     map[string]PackageInfo
-	PackageNames []string
+	Packages            map[string]PackageInfo
+	PackageNames        []string
+	PackageBaseNames    []string
+	PackageInfos        []PackageInfo
+	PackageDescriptions []PackageDescription
 }
 
 // PackageInfo is a data structure holding data for a single package
@@ -36,4 +39,9 @@ type PackageInfo struct {
 	CheckDepends   []string    `json:"CheckDepends"`
 	Replaces       []string    `json:"Replaces"`
 	Groups         []string    `json:"Groups"`
+}
+
+type PackageDescription struct {
+	Name        string      `json:"Name"`
+	Description null.String `json:"Description"`
 }

@@ -73,45 +73,45 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 	// perform search according to the "by" parameter
 	switch by {
 	case "name":
-		for _, pkg := range s.memDB.Packages {
-			if strings.Contains(pkg.Name, search) {
-				found = append(found, pkg)
+		for _, name := range s.memDB.PackageNames {
+			if strings.Contains(name, search) {
+				found = append(found, s.memDB.Packages[name])
 			}
 		}
 	case "maintainer":
-		for _, pkg := range s.memDB.Packages {
+		for _, pkg := range s.memDB.PackageInfos {
 			if pkg.Maintainer.ValueOrZero() == search {
 				found = append(found, pkg)
 			}
 		}
 	case "depends":
-		for _, pkg := range s.memDB.Packages {
+		for _, pkg := range s.memDB.PackageInfos {
 			if inSlice(pkg.Depends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "makedepends":
-		for _, pkg := range s.memDB.Packages {
+		for _, pkg := range s.memDB.PackageInfos {
 			if inSlice(pkg.MakeDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "optdepends":
-		for _, pkg := range s.memDB.Packages {
+		for _, pkg := range s.memDB.PackageInfos {
 			if sliceContainsBeginsWith(pkg.OptDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "checkdepends":
-		for _, pkg := range s.memDB.Packages {
+		for _, pkg := range s.memDB.PackageInfos {
 			if inSlice(pkg.CheckDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	default:
-		for _, pkg := range s.memDB.Packages {
-			if strings.Contains(pkg.Name, search) || strings.Contains(pkg.Description.ValueOrZero(), search) {
-				found = append(found, pkg)
+		for _, pkg := range s.memDB.PackageDescriptions {
+			if strings.Contains(pkg.Name, search) || strings.Contains(pkg.Description.String, search) {
+				found = append(found, s.memDB.Packages[pkg.Name])
 			}
 		}
 	}
@@ -145,35 +145,31 @@ func (s *server) rpcSuggest(values url.Values, pkgBase bool) []string {
 	found := []string{}
 	search := getArgument(values)
 
-	/*
-		see if we can optimize type "suggest-pkgbase"
-		right now we iterate through all packages,
-		sort them and return the first 20
+	count := 0
 
-		For "suggest" we can bail out after 20 found packages
-		since our data is already ordered in our PackageNames slice
-	*/
+	var searchBase []string
 	if pkgBase {
-		for _, v := range s.memDB.Packages {
-			if strings.Contains(v.PackageBase, search) {
-				found = append(found, v.Name)
+		searchBase = s.memDB.PackageBaseNames
+	} else {
+		searchBase = s.memDB.PackageNames
+	}
+
+	for _, p := range searchBase {
+		if strings.HasPrefix(p, search) {
+			found = append(found, p)
+			count++
+			if count == 20 {
+				break
 			}
 		}
 
-		sort.Strings(found)
-		if len(found) > 20 {
-			return found[:20]
-		}
-
-	} else {
-		count := 0
-		for _, p := range s.memDB.PackageNames {
-			if strings.Contains(p, search) {
-				found = append(found, p)
-				count++
-				if count == 20 {
-					break
-				}
+		/*
+			we can bail out if the first character is not matching anymore since our list is sorted
+			this can be optimized further but it's probably not even worth it
+		*/
+		if len(search) > 0 && len(p) > 0 {
+			if search[0] != p[0] {
+				break
 			}
 		}
 	}

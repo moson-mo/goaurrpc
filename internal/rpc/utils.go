@@ -40,7 +40,7 @@ func validateQueryString(values url.Values) error {
 	if !hasArg && !hasArgArr {
 		return errors.New("No request type/data specified.")
 	}
-	if (hasArg && len(values.Get("arg")) < 2) || (hasArgArr && len(values.Get("arg[]")) < 2) {
+	if ((hasArg && len(values.Get("arg")) < 2) || (hasArgArr && len(values.Get("arg[]")) < 2)) && !strings.HasPrefix(values.Get("type"), "suggest") {
 		return errors.New("Query arg too small.")
 	}
 
@@ -51,9 +51,11 @@ func validateQueryString(values url.Values) error {
 func getArgumentList(values url.Values) []string {
 	var args []string
 	if values.Get("arg") != "" {
-		args = append(args, values.Get("arg"))
+		args = append(args, strings.ToLower(values.Get("arg")))
 	} else {
-		args = append(args, values["arg[]"]...)
+		for _, arg := range values["arg[]"] {
+			args = append(args, strings.ToLower(arg))
+		}
 	}
 	return args
 }
@@ -61,9 +63,9 @@ func getArgumentList(values url.Values) []string {
 // get a single argument
 func getArgument(values url.Values) string {
 	if values.Get("arg") != "" {
-		return values.Get("arg")
+		return strings.ToLower(values.Get("arg"))
 	}
-	return values.Get("arg[]")
+	return strings.ToLower(values.Get("arg[]"))
 }
 
 // get search "by" parameter

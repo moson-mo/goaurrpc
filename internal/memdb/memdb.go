@@ -53,17 +53,39 @@ func LoadDbFromUrl(url string, lastmod string) (*MemoryDB, string, error) {
 // constructs MemoryDB struct
 func bytesToMemoryDB(b []byte) (*MemoryDB, error) {
 	db := MemoryDB{}
-	var records []PackageInfo
-	err := json.Unmarshal(b, &records)
+	err := json.Unmarshal(b, &db.PackageInfos)
 	if err != nil {
 		return nil, err
 	}
 
-	db.Packages = make(map[string]PackageInfo, len(records))
+	n := len(db.PackageInfos)
 
-	for _, pkg := range records {
+	db.Packages = make(map[string]PackageInfo, n)
+	db.PackageNames = make([]string, 0, n)
+	db.PackageDescriptions = make([]PackageDescription, 0, n)
+	baseNames := make([]string, 0, n)
+
+	for _, pkg := range db.PackageInfos {
 		db.Packages[pkg.Name] = pkg
 		db.PackageNames = append(db.PackageNames, pkg.Name)
+		baseNames = append(baseNames, pkg.PackageBase)
+		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: pkg.Description})
 	}
+
+	db.PackageBaseNames = distinctStringSlice(baseNames)
+
 	return &db, nil
+}
+
+func distinctStringSlice(s []string) []string {
+	keys := make(map[string]bool)
+	dist := []string{}
+
+	for _, entry := range s {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			dist = append(dist, entry)
+		}
+	}
+	return dist
 }

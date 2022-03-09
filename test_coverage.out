@@ -3,6 +3,7 @@ github.com/moson-mo/goaurrpc/internal/config/settings.go:34:	LoadFromFile		100.0
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:14:	LoadDbFromFile		93.8%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:41:	LoadDbFromUrl		85.7%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:54:	bytesToMemoryDB		100.0%
+github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:80:	distinctStringSlice	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/handlers.go:12:	rpcInfo			100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/handlers.go:64:	rpcSearch		100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/handlers.go:144:	rpcSuggest		100.0%
@@ -15,10 +16,10 @@ github.com/moson-mo/goaurrpc/internal/rpc/server.go:194:	reloadData		86.7%
 github.com/moson-mo/goaurrpc/internal/rpc/server.go:221:	startJobs		81.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:24:		validateQueryString	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:51:		getArgumentList		100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/utils.go:62:		getArgument		100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/utils.go:70:		getBy			100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/utils.go:85:		writeError		100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/utils.go:99:		writeResult		100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/utils.go:109:		inSlice			100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/utils.go:118:		sliceContainsBeginsWith	100.0%
-total:								(statements)		94.8%
+github.com/moson-mo/goaurrpc/internal/rpc/utils.go:64:		getArgument		100.0%
+github.com/moson-mo/goaurrpc/internal/rpc/utils.go:72:		getBy			100.0%
+github.com/moson-mo/goaurrpc/internal/rpc/utils.go:87:		writeError		100.0%
+github.com/moson-mo/goaurrpc/internal/rpc/utils.go:101:		writeResult		100.0%
+github.com/moson-mo/goaurrpc/internal/rpc/utils.go:111:		inSlice			100.0%
+github.com/moson-mo/goaurrpc/internal/rpc/utils.go:120:		sliceContainsBeginsWith	100.0%
+total:								(statements)		95.0%

@@ -1,5 +1,5 @@
 # goaurrpc
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moson-mo/goaurrpc/Go)](https://github.com/moson-mo/goaurrpc/actions) [![Coverage](https://img.shields.io/badge/Coverage-94.8%25-brightgreen)](https://github.com/moson-mo/goaurrpc/blob/main/test_coverage.out) [![Go Report Card](https://goreportcard.com/badge/github.com/moson-mo/goaurrpc)](https://goreportcard.com/report/github.com/moson-mo/goaurrpc)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moson-mo/goaurrpc/Go)](https://github.com/moson-mo/goaurrpc/actions) [![Coverage](https://img.shields.io/badge/Coverage-95.0%25-brightgreen)](https://github.com/moson-mo/goaurrpc/blob/main/test_coverage.out) [![Go Report Card](https://goreportcard.com/badge/github.com/moson-mo/goaurrpc)](https://goreportcard.com/report/github.com/moson-mo/goaurrpc)
 ### An implementation of the [aurweb](https://gitlab.archlinux.org/archlinux/aurweb) (v6) - /rpc - REST API service in go
 
 This project implements the /rpc endpoints (REST API) as described [here](https://aur.archlinux.org/rpc/), as well as the "suggest" type.  
@@ -8,7 +8,7 @@ Main goal is to increase the performance.
 
 ### Areas of improvement
 
-In the current version (aurweb v6.0.18 was used for comparison/benchmarking), the bottleneck seems to be the database access.  
+In the current version (aurweb v6.0.25 was used for comparison/benchmarking), the bottleneck seems to be the database access.  
 When a client makes a request an SQL statement is generated and a query is being run against the mariadb server.  
 A pretty normal scenario in web application.
 
@@ -60,9 +60,9 @@ During the tests, CPU consumption on the host was pretty close to the maximum fo
 
 #### Results
 
-* "suggest" lookup: **~85x** faster (**1550.07** requests per seconds vs. **18.37** r/s)
+* "suggest" lookup: **~17x** faster (**8345.16** requests per seconds vs. **487.16** r/s)
 * "info" lookup: **~35x** faster (**9326.27** r/s vs. **268.50** r/s)
-* "search" lookup: **~10x** faster (**160.64** r/s vs. **16.35** r/s) 
+* "search" lookup: **~52x** faster (**853.02** r/s vs. **16.35** r/s) 
 
 Now these benchmarks have been performed on a pretty low-spec machine.  
 Doing the same on a more performing machine should show even better results.   
@@ -77,18 +77,18 @@ Server Hostname:        192.168.0.11
 Server Port:            18000
 
 Document Path:          /rpc?v=5&type=suggest&arg=attest
-Document Length:        107 bytes
+Document Length:        72 bytes
 
 Concurrency Level:      10
-Time taken for tests:   54.442 seconds
+Time taken for tests:   2.053 seconds
 Complete requests:      1000
 Failed requests:        0
-Total transferred:      502000 bytes
-HTML transferred:       107000 bytes
-Requests per second:    18.37 [#/sec] (mean)
-Time per request:       544.421 [ms] (mean)
-Time per request:       54.442 [ms] (mean, across all concurrent requests)
-Transfer rate:          9.00 [Kbytes/sec] received
+Total transferred:      466000 bytes
+HTML transferred:       72000 bytes
+Requests per second:    487.16 [#/sec] (mean)
+Time per request:       20.527 [ms] (mean)
+Time per request:       2.053 [ms] (mean, across all concurrent requests)
+Transfer rate:          221.70 [Kbytes/sec] received
 ```
 
 - goaurrpc
@@ -99,18 +99,18 @@ Server Hostname:        192.168.0.11
 Server Port:            10666
 
 Document Path:          /rpc?v=5&type=suggest&arg=attest
-Document Length:        107 bytes
+Document Length:        72 bytes
 
 Concurrency Level:      10
-Time taken for tests:   0.645 seconds
+Time taken for tests:   0.120 seconds
 Complete requests:      1000
 Failed requests:        0
-Total transferred:      216000 bytes
-HTML transferred:       107000 bytes
-Requests per second:    1550.07 [#/sec] (mean)
-Time per request:       6.451 [ms] (mean)
-Time per request:       0.645 [ms] (mean, across all concurrent requests)
-Transfer rate:          326.97 [Kbytes/sec] received
+Total transferred:      180000 bytes
+HTML transferred:       72000 bytes
+Requests per second:    8345.16 [#/sec] (mean)
+Time per request:       1.198 [ms] (mean)
+Time per request:       0.120 [ms] (mean, across all concurrent requests)
+Transfer rate:          1466.92 [Kbytes/sec] received
 ```
 
 ##### Type "info"
@@ -194,15 +194,15 @@ Document Path:          /rpc?v=5&type=search&arg=attest
 Document Length:        3211 bytes
 
 Concurrency Level:      10
-Time taken for tests:   6.225 seconds
+Time taken for tests:   1.172 seconds
 Complete requests:      1000
 Failed requests:        0
 Total transferred:      3299000 bytes
 HTML transferred:       3211000 bytes
-Requests per second:    160.64 [#/sec] (mean)
-Time per request:       62.250 [ms] (mean)
-Time per request:       6.225 [ms] (mean, across all concurrent requests)
-Transfer rate:          517.54 [Kbytes/sec] received
+Requests per second:    853.02 [#/sec] (mean)
+Time per request:       11.723 [ms] (mean)
+Time per request:       1.172 [ms] (mean, across all concurrent requests)
+Transfer rate:          2748.17 [Kbytes/sec] received
 ``` 
 
 ### Concerns
@@ -216,8 +216,8 @@ That would only make sense if data is being retrieved directly from the DB thoug
 
 - Memory consumption?  
 
-After startup, once all data is loaded the amount of memory that is allocated for the process is ~230 MB  
-When data is being re-loaded periodically, the consumption increases temporarily to about ~430 MB   
+After startup, once all data is loaded the amount of memory that is allocated for the process is ~250 MB  
+When data is being re-loaded periodically, the consumption increases temporarily to about ~450 MB   
 until the "old set of data" is being garbage-collected.
 Sometimes this might take a while. During my tests I have never seen to get bigger than ~500 MB  
 (we could forcefully run the GC, but that does not really make sense.)
