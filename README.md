@@ -1,5 +1,5 @@
 # goaurrpc
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moson-mo/goaurrpc/Go)](https://github.com/moson-mo/goaurrpc/actions) [![Coverage](https://img.shields.io/badge/Coverage-95.0%25-brightgreen)](https://github.com/moson-mo/goaurrpc/blob/main/test_coverage.out) [![Go Report Card](https://goreportcard.com/badge/github.com/moson-mo/goaurrpc)](https://goreportcard.com/report/github.com/moson-mo/goaurrpc)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moson-mo/goaurrpc/Go)](https://github.com/moson-mo/goaurrpc/actions) [![Coverage](https://img.shields.io/badge/Coverage-95.2%25-brightgreen)](https://github.com/moson-mo/goaurrpc/blob/main/test_coverage.out) [![Go Report Card](https://goreportcard.com/badge/github.com/moson-mo/goaurrpc)](https://goreportcard.com/report/github.com/moson-mo/goaurrpc)
 ### An implementation of the [aurweb](https://gitlab.archlinux.org/archlinux/aurweb) (v6) - /rpc - REST API service in go
 
 This project implements the /rpc endpoints (REST API) as described [here](https://aur.archlinux.org/rpc/), as well as the "suggest" type.  
@@ -226,7 +226,7 @@ Sometimes this might take a while. During my tests I have never seen to get bigg
 
 - Download repository `git clone https://github.com/moson-mo/goaurrpc.git`
 - `cd goaurrpc`
-- Build with: `go build cmd/goaurrpc/goaurrpc.go`
+- Build with: `./build.sh`
 - This will create a binary `goaurrpc`
 
 ### Config file

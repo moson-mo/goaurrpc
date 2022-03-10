@@ -22,7 +22,7 @@ func DefaultSettings() *Settings {
 		Port:                     10666,
 		AurFileLocation:          "https://aur.archlinux.org/packages-meta-ext-v1.json.gz",
 		MaxResults:               5000,
-		RefreshInterval:          10 * 60, // refresh every 10 minutes
+		RefreshInterval:          5 * 60, // refresh every 5 minutes
 		RateLimit:                4000,
 		LoadFromFile:             false,
 		RateLimitCleanupInterval: 10 * 60,

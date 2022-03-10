@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -94,10 +95,11 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	t := qstr.Get("type")
 	v := qstr.Get("v")
 	version, _ := strconv.Atoi(v)
+	c := qstr.Get("callback")
 
 	// rate limit check
 	if s.isRateLimited(r) {
-		writeError(429, "Rate limit reached", version, w)
+		writeError(429, "Rate limit reached", version, "", w)
 		return
 	}
 
@@ -111,15 +113,19 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	// validate query parameters
 	err := validateQueryString(qstr)
 	if err != nil {
-		writeError(200, err.Error(), version, w)
+		if errors.Is(err, CallBackError) {
+			writeError(200, err.Error(), version, "", w)
+			return
+		}
+		writeError(200, err.Error(), version, c, w)
 		return
 	}
 
 	// handle suggest calls
 	if t == "suggest" || t == "suggest-pkgbase" {
 		s.mut.RLock()
-		defer s.mut.RUnlock()
 		b, err := json.Marshal(s.rpcSuggest(qstr, (t == "suggest-pkgbase")))
+		s.mut.RUnlock()
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprintf(w, "")
@@ -160,7 +166,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	result.Version = null.NewInt(int64(version), version != 0)
 
 	// return JSON to client
-	writeResult(&result, w)
+	writeResult(&result, c, w)
 }
 
 // check if rate limit is reached. Create / update the record.

@@ -61,6 +61,8 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/rpc?type=search&arg=a":                               `{"error":"Please specify an API version.","resultcount":0,"results":[],"type":"error","version":null}`,
 		"/rpc?v=5&type=search":                                 `{"error":"No request type/data specified.","resultcount":0,"results":[],"type":"error","version":5}`,
 		"/rpc?v=5&arg=bla":                                     `{"error":"No request type/data specified.","resultcount":0,"results":[],"type":"error","version":5}`,
+		"/rpc?v=5&type=info&arg=attest&callback=test":          `/**/test({"resultcount":1,"results":[{"CheckDepends":["acyclovir","severals"],"Conflicts":["georginas","craw","lift"],"Description":"This is a desciptive text for package attest","FirstSubmitted":1644749267,"ID":25746,"Keywords":[],"LastModified":1644749267,"License":[],"Maintainer":"violate","MakeDepends":["answerable","ingrained","circumscribed","crust","landsats","emptier"],"Name":"attest","NumVotes":42,"OptDepends":["lowermost: for unanswered","racquetballs: for ornaments","slit: for dichotomy"],"OutOfDate":null,"PackageBase":"attest","PackageBaseID":25746,"Popularity":0,"Provides":["superber","acupuncture","destination","rota","shoeshine"],"Replaces":["brutishness","messaged","abut"],"URL":null,"URLPath":"/cgit/aur.git/snapshot/attest.tar.gz","Version":"2.11.73-4"}],"type":"multiinfo","version":5})`,
+		"/rpc?v=5&type=info&arg=attest&callback=test[":         `{"error":"Invalid callback name.","resultcount":0,"results":[],"type":"error","version":5}`,
 	}
 
 	suite.ExpectedArgumentsList = map[*url.Values][]string{
@@ -185,6 +187,12 @@ func (suite *RpcTestSuite) TestListen() {
 
 	suite.srv.settings.Port = 99999 // use impossible port to trigger an error
 	suite.NotNil(suite.srv.Listen())
+}
+
+// purposefully crash reload function
+func (suite *RpcTestSuite) TestBrokenReload() {
+	suite.srv.settings.AurFileLocation = "x"
+	suite.NotNil(suite.srv.reloadData(), "Should return an error")
 }
 
 // run our tests
