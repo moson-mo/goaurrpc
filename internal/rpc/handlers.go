@@ -168,7 +168,7 @@ func (s *server) rpcSuggest(values url.Values, pkgBase bool) []string {
 			this can be optimized further but it's probably not even worth it
 		*/
 		if len(search) > 0 && len(p) > 0 {
-			if search[0] != p[0] {
+			if search[0] < p[0] {
 				break
 			}
 		}

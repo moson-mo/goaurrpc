@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/moson-mo/goaurrpc/internal/aur"
@@ -71,8 +72,10 @@ func bytesToMemoryDB(b []byte) (*MemoryDB, error) {
 		baseNames = append(baseNames, pkg.PackageBase)
 		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: pkg.Description})
 	}
-
 	db.PackageBaseNames = distinctStringSlice(baseNames)
+
+	sort.Strings(db.PackageBaseNames)
+	sort.Strings(db.PackageNames)
 
 	return &db, nil
 }
