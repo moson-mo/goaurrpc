@@ -166,6 +166,21 @@ func (suite *RpcTestSuite) TestRateLimit() {
 			suite.Equal(rr.Body.String(), suite.ExpectedRateLimit)
 		}
 	}
+
+	// with X-Real-IP
+	for i := 0; i < 10; i++ {
+		rr := httptest.NewRecorder()
+		req, err := http.NewRequest("GET", "/rpc", nil)
+		req.Header.Add("X-Real-IP", "test_rate_limit")
+		suite.Nil(err, "Could not create request")
+
+		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
+		if i == 0 {
+			suite.NotEqual(rr.Body.String(), suite.ExpectedRateLimit)
+		} else if i > 0 {
+			suite.Equal(rr.Body.String(), suite.ExpectedRateLimit)
+		}
+	}
 }
 
 // test create server

@@ -82,7 +82,12 @@ func (s *server) Stop() {
 
 // handles client connections
 func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Client connected:", r.RemoteAddr, "->", r.URL)
+	ip := r.RemoteAddr
+	ipp := r.Header.Get("X-Real-IP")
+	if ipp != "" {
+		ip = ipp
+	}
+	fmt.Println("Client connected:", ip, "->", r.URL)
 
 	// check if got a GET or POST request
 	var qstr url.Values
@@ -178,7 +183,14 @@ func (s *server) isRateLimited(r *http.Request) bool {
 	if s.settings.RateLimit == 0 {
 		return false
 	}
+
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+	ipp := r.Header.Get("X-Real-IP")
+	if ipp != "" {
+		ip = ipp
+	}
+
 	la, ok := s.RateLimits[ip]
 	if ok {
 		la.Requests++
