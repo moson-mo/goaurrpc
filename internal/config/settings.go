@@ -15,6 +15,9 @@ type Settings struct {
 	LoadFromFile             bool
 	RateLimitCleanupInterval int // in seconds
 	TrustedReverseProxies    []string
+	EnableSSL                bool
+	CertFile                 string
+	KeyFile                  string
 }
 
 // DefaultSettings returns the default settings for our server

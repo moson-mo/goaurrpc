@@ -72,6 +72,9 @@ func (s *server) Listen() error {
 	}()
 
 	// Listen for requests
+	if s.settings.EnableSSL {
+		return srv.ListenAndServeTLS(s.settings.CertFile, s.settings.KeyFile)
+	}
 	return srv.ListenAndServe()
 }
 
