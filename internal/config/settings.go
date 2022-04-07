@@ -14,6 +14,7 @@ type Settings struct {
 	RateLimit                int
 	LoadFromFile             bool
 	RateLimitCleanupInterval int // in seconds
+	TrustedReverseProxies    []string
 }
 
 // DefaultSettings returns the default settings for our server
@@ -26,6 +27,7 @@ func DefaultSettings() *Settings {
 		RateLimit:                4000,
 		LoadFromFile:             false,
 		RateLimitCleanupInterval: 10 * 60,
+		TrustedReverseProxies:    []string{"127.0.0.1", "::1"},
 	}
 	return &s
 }

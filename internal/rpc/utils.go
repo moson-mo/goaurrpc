@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -128,6 +129,16 @@ func sendResult(code int, callback string, b []byte, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(b)
+}
+
+// get the client IP-Address. If behind a reverse proxy, obtain it from the X-Real-IP header
+func getRealIP(r *http.Request, trustedProxies []string) string {
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+	ipp := r.Header.Get("X-Real-IP")
+	if ipp != "" && inSlice(trustedProxies, ip) {
+		ip = ipp
+	}
+	return ip
 }
 
 func inSlice(s []string, e string) bool {

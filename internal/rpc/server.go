@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -82,11 +81,7 @@ func (s *server) Stop() {
 
 // handles client connections
 func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
-	ip := r.RemoteAddr
-	ipp := r.Header.Get("X-Real-IP")
-	if ipp != "" {
-		ip = ipp
-	}
+	ip := getRealIP(r, s.settings.TrustedReverseProxies)
 	fmt.Println("Client connected:", ip, "->", r.URL)
 
 	// check if got a GET or POST request
@@ -103,7 +98,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	c := qstr.Get("callback")
 
 	// rate limit check
-	if s.isRateLimited(r) {
+	if s.isRateLimited(ip) {
 		writeError(429, "Rate limit reached", version, "", w)
 		return
 	}
@@ -175,20 +170,13 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // check if rate limit is reached. Create / update the record.
-func (s *server) isRateLimited(r *http.Request) bool {
+func (s *server) isRateLimited(ip string) bool {
 	s.mutLimit.Lock()
 	defer s.mutLimit.Unlock()
 
 	// RateLimit of 0 -> Skip check
 	if s.settings.RateLimit == 0 {
 		return false
-	}
-
-	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-
-	ipp := r.Header.Get("X-Real-IP")
-	if ipp != "" {
-		ip = ipp
 	}
 
 	la, ok := s.RateLimits[ip]

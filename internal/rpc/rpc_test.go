@@ -27,12 +27,13 @@ func (suite *RpcTestSuite) SetupSuite() {
 	fmt.Println(">>> Setting up RPC test suite")
 
 	conf := config.Settings{
-		Port:            10666,
-		AurFileLocation: "../../test_data/test_packages.json.gz",
-		MaxResults:      5000,
-		RefreshInterval: 600,
-		RateLimit:       4000,
-		LoadFromFile:    true,
+		Port:                  10666,
+		AurFileLocation:       "../../test_data/test_packages.json.gz",
+		MaxResults:            5000,
+		RefreshInterval:       600,
+		RateLimit:             4000,
+		LoadFromFile:          true,
+		TrustedReverseProxies: []string{"127.0.0.1", "::1"},
 	}
 
 	suite.ExpectedRpcResults = map[string]string{
@@ -96,12 +97,13 @@ func (suite *RpcTestSuite) SetupSuite() {
 func (suite *RpcTestSuite) SetupTest() {
 	// reset settings
 	suite.srv.settings = config.Settings{
-		Port:            10666,
-		AurFileLocation: "../../test_data/test_packages.json.gz",
-		MaxResults:      5000,
-		RefreshInterval: 600,
-		RateLimit:       4000,
-		LoadFromFile:    true,
+		Port:                  10666,
+		AurFileLocation:       "../../test_data/test_packages.json.gz",
+		MaxResults:            5000,
+		RefreshInterval:       600,
+		RateLimit:             4000,
+		LoadFromFile:          true,
+		TrustedReverseProxies: []string{"127.0.0.1", "::1"},
 	}
 }
 
@@ -157,6 +159,7 @@ func (suite *RpcTestSuite) TestRateLimit() {
 	for i := 0; i < 10; i++ {
 		rr := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/rpc", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
 		suite.Nil(err, "Could not create request")
 
 		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
@@ -168,15 +171,17 @@ func (suite *RpcTestSuite) TestRateLimit() {
 	}
 
 	// with X-Real-IP
+	fmt.Println(suite.srv.settings.TrustedReverseProxies)
 	for i := 0; i < 10; i++ {
 		rr := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/rpc", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
 		req.Header.Add("X-Real-IP", "test_rate_limit")
 		suite.Nil(err, "Could not create request")
 
 		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
 		if i == 0 {
-			suite.NotEqual(rr.Body.String(), suite.ExpectedRateLimit)
+			suite.NotEqual(rr.Body.String(), suite.ExpectedRateLimit, "request number: ", i)
 		} else if i > 0 {
 			suite.Equal(rr.Body.String(), suite.ExpectedRateLimit)
 		}
