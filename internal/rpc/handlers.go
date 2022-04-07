@@ -158,7 +158,7 @@ func (s *server) rpcSuggest(values url.Values, pkgBase bool) []string {
 		if strings.HasPrefix(p, search) {
 			found = append(found, p)
 			count++
-			if count == 20 {
+			if count == 100 {
 				break
 			}
 		}
