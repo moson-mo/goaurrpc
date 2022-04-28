@@ -45,7 +45,9 @@ func validateQueryString(values url.Values) error {
 	if !hasArg && !hasArgArr {
 		return errors.New("No request type/data specified.")
 	}
-	if ((hasArg && len(values.Get("arg")) < 2) || (hasArgArr && len(values.Get("arg[]")) < 2)) && strings.HasPrefix(values.Get("type"), "search") {
+	if ((hasArg && len(values.Get("arg")) < 2) || (hasArgArr && len(values.Get("arg[]")) < 2)) &&
+		strings.HasPrefix(values.Get("type"), "search") &&
+		values.Get("by") != "maintainer" {
 		return errors.New("Query arg too small.")
 	}
 	if values.Get("callback") != "" {
