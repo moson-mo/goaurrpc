@@ -42,7 +42,7 @@ func validateQueryString(values url.Values) error {
 	if !inSlice(queryTypes, values.Get("type")) {
 		return errors.New("Incorrect request type specified.")
 	}
-	if !hasArg && !hasArgArr {
+	if !hasArg && !hasArgArr && values.Get("by") != "maintainer" {
 		return errors.New("No request type/data specified.")
 	}
 	if ((hasArg && len(values.Get("arg")) < 2) || (hasArgArr && len(values.Get("arg[]")) < 2)) &&
