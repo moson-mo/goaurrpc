@@ -46,6 +46,7 @@ func New(settings config.Settings) (*server, error) {
 		return nil, err
 	}
 	fmt.Println("Loaded package data.")
+	fmt.Println("Server started. Ready for client connections...")
 	return &s, nil
 }
 

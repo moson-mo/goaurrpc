@@ -9,6 +9,8 @@ import (
 	"github.com/moson-mo/goaurrpc/internal/rpc"
 )
 
+const version = "1.0.0"
+
 func main() {
 	var settings *config.Settings
 
@@ -28,7 +30,7 @@ func main() {
 	}
 
 	// construct new server and start listening for requests
-	fmt.Println("Server is starting...")
+	fmt.Printf("goaurrpc v%s is starting...\n", version)
 	s, err := rpc.New(*settings)
 	if err != nil {
 		panic(err)
@@ -36,5 +38,5 @@ func main() {
 	if err = s.Listen(); err != http.ErrServerClosed {
 		fmt.Println(err)
 	}
-	fmt.Println("Server stopped.")
+	fmt.Printf("goaurrpc v%s stopped.\n", version)
 }
