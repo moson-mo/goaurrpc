@@ -253,8 +253,9 @@ func (s *server) startJobs() {
 	go func() {
 		time.Sleep(time.Duration(s.settings.RateLimitCleanupInterval) * time.Second)
 		s.mutLimit.Lock()
+		t := time.Now()
 		for ip, rl := range s.RateLimits {
-			if time.Since(rl.WindowStart).Hours() > 23 {
+			if t.Sub(rl.WindowStart).Hours() > 23 {
 				delete(s.RateLimits, ip)
 				fmt.Println("Removed rate limit for", ip)
 			}
