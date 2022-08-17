@@ -136,9 +136,19 @@ func sendResult(code int, callback string, b []byte, w http.ResponseWriter) {
 // get the client IP-Address. If behind a reverse proxy, obtain it from the X-Real-IP header
 func getRealIP(r *http.Request, trustedProxies []string) string {
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-	ipp := r.Header.Get("X-Real-IP")
-	if ipp != "" && inSlice(trustedProxies, ip) {
-		ip = ipp
+	realIP := r.Header.Get("X-Real-IP")
+	fwdIP := r.Header.Get("X-Forwarded-For")
+	isProxyTrusted := inSlice(trustedProxies, ip)
+
+	if realIP != "" && isProxyTrusted {
+		return realIP
+	}
+	if fwdIP != "" && isProxyTrusted {
+		ips := strings.Split(fwdIP, ", ")
+		if len(ips) > 1 {
+			return ips[0]
+		}
+		return fwdIP
 	}
 	return ip
 }

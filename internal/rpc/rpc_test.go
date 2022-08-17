@@ -181,12 +181,43 @@ func (suite *RpcTestSuite) TestRateLimit() {
 	}
 
 	// with X-Real-IP
-	fmt.Println(suite.srv.settings.TrustedReverseProxies)
 	for i := 0; i < 10; i++ {
 		rr := httptest.NewRecorder()
 		req, err := http.NewRequest("GET", "/rpc", nil)
 		req.RemoteAddr = "127.0.0.1:12345"
-		req.Header.Add("X-Real-IP", "test_rate_limit")
+		req.Header.Add("X-Real-IP", "test_rate_limit_real_ip")
+		suite.Nil(err, "Could not create request")
+
+		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
+		if i == 0 {
+			suite.NotEqual(rr.Body.String(), suite.ExpectedRateLimit, "request number: ", i)
+		} else if i > 0 {
+			suite.Equal(rr.Body.String(), suite.ExpectedRateLimit)
+		}
+	}
+
+	// with X-Forwarded-For
+	for i := 0; i < 10; i++ {
+		rr := httptest.NewRecorder()
+		req, err := http.NewRequest("GET", "/rpc", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Add("X-Forwarded-For", "test_rate_limit_x_forwarded")
+		suite.Nil(err, "Could not create request")
+
+		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
+		if i == 0 {
+			suite.NotEqual(rr.Body.String(), suite.ExpectedRateLimit, "request number: ", i)
+		} else if i > 0 {
+			suite.Equal(rr.Body.String(), suite.ExpectedRateLimit)
+		}
+	}
+
+	// with X-Forwarded-For (multiple)
+	for i := 0; i < 10; i++ {
+		rr := httptest.NewRecorder()
+		req, err := http.NewRequest("GET", "/rpc", nil)
+		req.RemoteAddr = "127.0.0.1:12345"
+		req.Header.Add("X-Forwarded-For", "test_rate_limit_x_forwarded_multi, bla, blubb")
 		suite.Nil(err, "Could not create request")
 
 		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
