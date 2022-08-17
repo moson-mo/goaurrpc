@@ -117,7 +117,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	// validate query parameters
 	err := validateQueryString(qstr)
 	if err != nil {
-		if errors.Is(err, CallBackError) {
+		if errors.Is(err, ErrCallBack) {
 			writeError(200, err.Error(), version, "", w)
 			return
 		}

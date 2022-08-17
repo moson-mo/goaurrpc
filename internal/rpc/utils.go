@@ -23,7 +23,7 @@ var queryTypes = []string{
 	"suggest-pkgbase",
 }
 
-var CallBackError = errors.New("Invalid callback name.")
+var ErrCallBack = errors.New("Invalid callback name.")
 
 // Checking the validity of the query parameters
 func validateQueryString(values url.Values) error {
@@ -53,7 +53,7 @@ func validateQueryString(values url.Values) error {
 	if values.Get("callback") != "" {
 		match, _ := regexp.MatchString("^[a-zA-Z0-9()_.]{1,128}$", values.Get("callback"))
 		if !match {
-			return CallBackError
+			return ErrCallBack
 		}
 	}
 
