@@ -9,7 +9,6 @@ RUN go mod download
 
 COPY *.go ./
 COPY internal/ internal/
-COPY data/ data/
 RUN go build -ldflags="-s -w" -o /goaurrpc
 
 FROM alpine:3.15
