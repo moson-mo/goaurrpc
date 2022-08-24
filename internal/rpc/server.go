@@ -80,7 +80,7 @@ func (s *server) Listen() error {
 	mux.HandleFunc("/rpc", s.rpcHandler)
 
 	srv := http.Server{
-		Addr:    "127.0.0.1:" + strconv.Itoa(s.settings.Port),
+		Addr:    ":" + strconv.Itoa(s.settings.Port),
 		Handler: mux,
 	}
 
