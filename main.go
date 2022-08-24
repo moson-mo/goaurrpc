@@ -9,7 +9,7 @@ import (
 	"github.com/moson-mo/goaurrpc/internal/rpc"
 )
 
-const version = "1.0.0"
+const version = "1.1.0"
 
 func main() {
 	var settings *config.Settings
