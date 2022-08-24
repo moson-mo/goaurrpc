@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -22,19 +23,22 @@ type RpcTestSuite struct {
 	ExpectedRateLimit     string
 }
 
+var conf = config.Settings{
+	Port:                  10666,
+	AurFileLocation:       "../../test_data/test_packages.json.gz",
+	MaxResults:            5000,
+	RefreshInterval:       600,
+	RateLimit:             4000,
+	LoadFromFile:          true,
+	TrustedReverseProxies: []string{"127.0.0.1", "::1"},
+	EnableSearchCache:     true,
+	RateLimitTimeWindow:   86400,
+	LogFile:               "log.tst",
+}
+
 // setup our test suite
 func (suite *RpcTestSuite) SetupSuite() {
 	fmt.Println(">>> Setting up RPC test suite")
-
-	conf := config.Settings{
-		Port:                  10666,
-		AurFileLocation:       "../../test_data/test_packages.json.gz",
-		MaxResults:            5000,
-		RefreshInterval:       600,
-		RateLimit:             4000,
-		LoadFromFile:          true,
-		TrustedReverseProxies: []string{"127.0.0.1", "::1"},
-	}
 
 	suite.ExpectedRpcResults = map[string]string{
 		"/rpc?v=5&type=info&arg=attest":                        `{"resultcount":1,"results":[{"CheckDepends":["acyclovir","severals"],"Conflicts":["georginas","craw","lift"],"Description":"This is a desciptive text for package attest","FirstSubmitted":1644749267,"ID":25746,"Keywords":[],"LastModified":1644749267,"License":[],"Maintainer":"violate","MakeDepends":["answerable","ingrained","circumscribed","crust","landsats","emptier"],"Name":"attest","NumVotes":42,"OptDepends":["lowermost: for unanswered","racquetballs: for ornaments","slit: for dichotomy"],"OutOfDate":null,"PackageBase":"attest","PackageBaseID":25746,"Popularity":0,"Provides":["superber","acupuncture","destination","rota","shoeshine"],"Replaces":["brutishness","messaged","abut"],"URL":null,"URLPath":"/cgit/aur.git/snapshot/attest.tar.gz","Version":"2.11.73-4"}],"type":"multiinfo","version":5}`,
@@ -99,25 +103,25 @@ func (suite *RpcTestSuite) SetupSuite() {
 	suite.ExpectedRateLimit = `{"error":"Rate limit reached","resultcount":0,"results":[],"type":"error","version":null}`
 
 	var err error
-	suite.srv, err = New(conf)
+	suite.srv, err = New(conf, false)
 	suite.Nil(err, "Could not create rpc server")
+	suite.srv.verbose = true
 }
 
 // run before each test
 func (suite *RpcTestSuite) SetupTest() {
 	// reset settings
-	suite.srv.settings = config.Settings{
-		Port:                  10666,
-		AurFileLocation:       "../../test_data/test_packages.json.gz",
-		MaxResults:            5000,
-		RefreshInterval:       600,
-		RateLimit:             4000,
-		LoadFromFile:          true,
-		TrustedReverseProxies: []string{"127.0.0.1", "::1"},
-	}
+	suite.srv.settings = conf
 }
 
+// cleanup
 func (suite *RpcTestSuite) TearDownSuite() {
+	log := suite.srv.settings.LogFile
+	_, err := os.Stat(log)
+	if log != "" && err == nil {
+		err = os.Remove(log)
+		suite.Nil(err)
+	}
 	fmt.Println(">>> RPC tests completed")
 }
 
@@ -140,25 +144,28 @@ func (suite *RpcTestSuite) TestGetArgumentSingle() {
 // test handlers
 func (suite *RpcTestSuite) TestRpcHandlers() {
 	suite.srv.settings.MaxResults = 10
-	// get requests
-	for k, v := range suite.ExpectedRpcResults {
-		rr := httptest.NewRecorder()
-		req, err := http.NewRequest("GET", k, nil)
-		suite.Nil(err, "Could not create GET request")
 
-		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
-		suite.Equal(v, rr.Body.String(), "Input: "+k)
-	}
+	for i := 0; i < 2; i++ {
+		// get requests
+		for k, v := range suite.ExpectedRpcResults {
+			rr := httptest.NewRecorder()
+			req, err := http.NewRequest("GET", k, nil)
+			suite.Nil(err, "Could not create GET request")
 
-	// post requests
-	for k, v := range suite.ExpectedRpcResults {
-		rr := httptest.NewRecorder()
-		req, err := http.NewRequest("POST", "/rpc", strings.NewReader(strings.Split(k, "?")[1]))
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-		suite.Nil(err, "Could not create POST request")
+			http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
+			suite.Equal(v, rr.Body.String(), "Input: "+k)
+		}
 
-		http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
-		suite.Equal(v, rr.Body.String(), "Input: "+k)
+		// post requests
+		for k, v := range suite.ExpectedRpcResults {
+			rr := httptest.NewRecorder()
+			req, err := http.NewRequest("POST", "/rpc", strings.NewReader(strings.Split(k, "?")[1]))
+			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			suite.Nil(err, "Could not create POST request")
+
+			http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
+			suite.Equal(v, rr.Body.String(), "Input: "+k)
+		}
 	}
 }
 
@@ -233,17 +240,22 @@ func (suite *RpcTestSuite) TestRateLimit() {
 func (suite *RpcTestSuite) TestListen() {
 	suite.srv.settings.RateLimitCleanupInterval = 1
 	suite.srv.settings.RefreshInterval = 1
+	suite.srv.settings.CacheCleanupInterval = 1
+	suite.srv.settings.CacheExpirationTime = 1
 
 	go func() {
 		err := suite.srv.Listen()
 		suite.Equal(http.ErrServerClosed, err)
 	}()
-	suite.srv.RateLimits["test"] = RateLimit{WindowStart: time.Now().AddDate(0, 0, -2), Requests: 1}
-	time.Sleep(600 * time.Millisecond)
+
+	suite.srv.rateLimits["test"] = RateLimit{WindowStart: time.Now().AddDate(0, 0, -2), Requests: 1}
+	suite.srv.searchCache["test"] = CacheEntry{}
+	time.Sleep(1000 * time.Millisecond)
 	suite.srv.settings.AurFileLocation = "https://github.com/moson-mo/goaurrpc/raw/main/test_data/test_packages.json"
 	suite.srv.settings.LoadFromFile = false
-	time.Sleep(600 * time.Millisecond)
-	suite.Empty(suite.srv.RateLimits) // check if rate limit got removed
+	time.Sleep(1000 * time.Millisecond)
+	suite.Empty(suite.srv.rateLimits) // check if rate limit got removed
+	suite.Empty(suite.srv.searchCache)
 	suite.srv.Stop()
 
 	suite.srv.settings.Port = 99999 // use impossible port to trigger an error

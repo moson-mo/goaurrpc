@@ -57,7 +57,10 @@ During the tests, CPU consumption on the host was pretty close to the maximum fo
 * "search" lookup: **~52x** faster (**853.02** r/s vs. **16.35** r/s) 
 
 Now these benchmarks have been performed on a pretty low-spec machine.  
-Doing the same on a more performing machine should show even better results.   
+Doing the same on a more performing machine should show even better results.  
+
+The "search" lookup is measured without utilizing the "search cache feature".  
+Some "cache enabled" benchmarks will follow soon...  
 
 ##### Type "suggest"
 

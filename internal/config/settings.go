@@ -2,6 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 )
 
@@ -14,10 +16,15 @@ type Settings struct {
 	RateLimit                int
 	LoadFromFile             bool
 	RateLimitCleanupInterval int // in seconds
+	RateLimitTimeWindow      int // in seconds
 	TrustedReverseProxies    []string
 	EnableSSL                bool
 	CertFile                 string
 	KeyFile                  string
+	EnableSearchCache        bool
+	CacheCleanupInterval     int // in seconds
+	CacheExpirationTime      int // in seconds
+	LogFile                  string
 }
 
 // DefaultSettings returns the default settings for our server
@@ -30,7 +37,12 @@ func DefaultSettings() *Settings {
 		RateLimit:                4000,
 		LoadFromFile:             false,
 		RateLimitCleanupInterval: 10 * 60,
+		RateLimitTimeWindow:      24 * 60 * 60,
 		TrustedReverseProxies:    []string{"127.0.0.1", "::1"},
+		EnableSearchCache:        true,
+		CacheCleanupInterval:     60,
+		CacheExpirationTime:      180,
+		LogFile:                  "",
 	}
 	return &s
 }
@@ -45,6 +57,27 @@ func LoadFromFile(path string) (*Settings, error) {
 	err = json.Unmarshal(b, &s)
 	if err != nil {
 		return nil, err
+	}
+
+	// make sure we got sane config data
+	errZero := " needs to be specified / greater than 0"
+	switch 0 {
+	case s.Port:
+		return nil, errors.New("config: Port" + errZero)
+	case s.MaxResults:
+		return nil, errors.New("config: MaxResults" + errZero)
+	case s.RefreshInterval:
+		return nil, errors.New("config: RefreshInterval" + errZero)
+	case s.RateLimit:
+		fmt.Println("Warning: Rate limiting is disabled - RateLimit = 0")
+	case s.RateLimitCleanupInterval:
+		return nil, errors.New("config: RateLimitCleanupInterval" + errZero)
+	case s.RateLimitTimeWindow:
+		return nil, errors.New("config: RateLimitTimeWindow" + errZero)
+	case s.CacheCleanupInterval:
+		return nil, errors.New("config: CacheCleanupInterval" + errZero)
+	case s.CacheExpirationTime:
+		return nil, errors.New("config: CacheExpirationTime" + errZero)
 	}
 	return &s, nil
 }

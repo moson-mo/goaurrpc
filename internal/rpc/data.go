@@ -66,3 +66,8 @@ type RateLimit struct {
 	Requests    int
 	WindowStart time.Time
 }
+
+type CacheEntry struct {
+	Result    RpcResult
+	TimeAdded time.Time
+}

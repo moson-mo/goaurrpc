@@ -66,6 +66,17 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		Type: values.Get("type"),
 	}
 
+	// search cache
+	key := values.Encode()
+	if s.settings.EnableSearchCache && len(key) < 1024 {
+		s.mutCache.RLock()
+		res, found := s.searchCache[key]
+		s.mutCache.RUnlock()
+		if found {
+			return res.Result
+		}
+	}
+
 	by := getBy(values)
 	found := []db.PackageInfo{}
 	search := getArgument(values)

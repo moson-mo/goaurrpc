@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,55 +21,76 @@ import (
 
 // API server struct
 type server struct {
-	memDB      *db.MemoryDB
-	mut        sync.RWMutex
-	mutLimit   sync.RWMutex
-	settings   config.Settings
-	stop       chan os.Signal
-	RateLimits map[string]RateLimit
-	lastmod    string
+	memDB       *db.MemoryDB
+	mut         sync.RWMutex
+	mutLimit    sync.RWMutex
+	mutCache    sync.RWMutex
+	settings    config.Settings
+	stop        chan os.Signal
+	rateLimits  map[string]RateLimit
+	searchCache map[string]CacheEntry
+	lastmod     string
+	verbose     bool
 }
 
 // New creates a new server and immediately loads package data into memory
-func New(settings config.Settings) (*server, error) {
+func New(settings config.Settings, verbose bool) (*server, error) {
 	s := server{
-		RateLimits: make(map[string]RateLimit),
-		stop:       make(chan os.Signal, 1),
+		rateLimits:  make(map[string]RateLimit),
+		searchCache: make(map[string]CacheEntry),
+		stop:        make(chan os.Signal, 1),
+		verbose:     verbose,
 	}
+
+	// prep logging
+	if settings.LogFile != "" {
+		f, err := os.OpenFile(settings.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return nil, err
+		}
+		log.SetOutput(f)
+	}
+	log.SetFlags(log.LstdFlags | log.Lmsgprefix)
+	log.SetPrefix("| ")
+
 	signal.Notify(s.stop, os.Interrupt)
 
 	s.settings = settings
 
 	// load data
-	fmt.Println("Loading package data...")
+	s.LogVerbose("Loading package data...")
 	err := s.reloadData()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Loaded package data.")
-	fmt.Println("Server started. Ready for client connections...")
+	s.LogVerbose("Loaded package data.")
+	s.Log("Server started. Ready for client connections...")
 	return &s, nil
 }
 
 // Listen creates a rest API endpoint and starts listening for requests
 func (s *server) Listen() error {
+	wg := sync.WaitGroup{}
+	shutdown := make(chan struct{})
 	// start period tasks
-	s.startJobs()
+	s.startJobs(shutdown, &wg)
 
 	// routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("/rpc", s.rpcHandler)
 
 	srv := http.Server{
-		Addr:    ":" + strconv.Itoa(s.settings.Port),
+		Addr:    "127.0.0.1:" + strconv.Itoa(s.settings.Port),
 		Handler: mux,
 	}
 
 	// shut down if we get the interrupt signal
 	go func() {
 		<-s.stop
+		s.Log("Server is shutting down...")
+		close(shutdown)
 
-		fmt.Println("Server is shutting down...")
+		wg.Wait()
 		srv.Shutdown(context.Background())
 	}()
 
@@ -79,6 +101,7 @@ func (s *server) Listen() error {
 	return srv.ListenAndServe()
 }
 
+// Stop stops the server
 func (s *server) Stop() {
 	s.stop <- os.Interrupt
 }
@@ -86,7 +109,7 @@ func (s *server) Stop() {
 // handles client connections
 func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	ip := getRealIP(r, s.settings.TrustedReverseProxies)
-	fmt.Println("Client connected:", ip, "->", r.URL)
+	s.LogVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
 	// check if got a GET or POST request
 	var qstr url.Values
@@ -103,6 +126,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// rate limit check
 	if s.isRateLimited(ip) {
+		s.LogVerbose("Client reached rate limit: ", ip)
 		writeError(429, "Rate limit reached", version, "", w)
 		return
 	}
@@ -142,16 +166,14 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// handle info / search calls
 	var result RpcResult
+	addCache := false
 	s.mut.RLock()
 	switch t {
-	case "info":
+	case "info", "multiinfo":
 		result = s.rpcInfo(qstr)
-	case "multiinfo":
-		result = s.rpcInfo(qstr)
-	case "search":
+	case "search", "msearch":
 		result = s.rpcSearch(qstr)
-	case "msearch":
-		result = s.rpcSearch(qstr)
+		addCache = true
 	default:
 		result = RpcResult{}
 	}
@@ -164,6 +186,13 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		result.Resultcount = 0
 		result.Results = nil
 		result.Type = "error"
+	}
+
+	// add to cache
+	if s.settings.EnableSearchCache && addCache {
+		s.mutCache.Lock()
+		s.searchCache[qstr.Encode()] = CacheEntry{Result: result, TimeAdded: time.Now()}
+		s.mutCache.Unlock()
 	}
 
 	// set version number
@@ -183,83 +212,19 @@ func (s *server) isRateLimited(ip string) bool {
 		return false
 	}
 
-	la, ok := s.RateLimits[ip]
+	la, ok := s.rateLimits[ip]
 	if ok {
 		la.Requests++
-		s.RateLimits[ip] = la
+		s.rateLimits[ip] = la
 		if la.Requests > s.settings.RateLimit {
 			return true
 		}
 	} else {
-		fmt.Println("Rate limit added", ip)
-		s.RateLimits[ip] = RateLimit{
+		s.LogVerbose("Rate limit added:", ip)
+		s.rateLimits[ip] = RateLimit{
 			Requests:    1,
 			WindowStart: time.Now(),
 		}
 	}
 	return false
-}
-
-// load data from file/url
-func (s *server) reloadData() error {
-	/*
-		use local file for extensive testing -> ptr, err := db.LoadDbFromFile("packages.json")
-		we don't want to stress the aur server
-	*/
-	var ptr *db.MemoryDB
-	var lmod string
-	var err error
-	if s.settings.LoadFromFile {
-		ptr, err = db.LoadDbFromFile(s.settings.AurFileLocation)
-		if err != nil {
-			return err
-		}
-	} else {
-		ptr, lmod, err = db.LoadDbFromUrl(s.settings.AurFileLocation, s.lastmod)
-		if err != nil {
-			return err
-		}
-	}
-	s.mut.Lock()
-	defer s.mut.Unlock()
-	s.memDB = ptr
-	s.lastmod = lmod
-	return nil
-}
-
-// start go-routines for periodic tasks
-func (s *server) startJobs() {
-	// starts a go routine that continuesly refreshes the package data
-	go func() {
-		for {
-			time.Sleep(time.Duration(s.settings.RefreshInterval) * time.Second)
-			fmt.Println("Reloading package data...")
-			start := time.Now()
-			err := s.reloadData()
-			if err != nil {
-				if err.Error() == "not modified" {
-					fmt.Println("Reload skipped. File has not been modified.")
-				} else {
-					fmt.Println("Error reloading data: ", err)
-				}
-				continue
-			}
-			elapsed := time.Since(start)
-			fmt.Println("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")
-		}
-	}()
-
-	// starts a go routine that removes rate limits if older than 24h
-	go func() {
-		time.Sleep(time.Duration(s.settings.RateLimitCleanupInterval) * time.Second)
-		s.mutLimit.Lock()
-		t := time.Now()
-		for ip, rl := range s.RateLimits {
-			if t.Sub(rl.WindowStart).Hours() > 23 {
-				delete(s.RateLimits, ip)
-				fmt.Println("Removed rate limit for", ip)
-			}
-		}
-		s.mutLimit.Unlock()
-	}()
 }
