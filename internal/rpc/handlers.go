@@ -97,25 +97,25 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		}
 	case "depends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if inSlice(pkg.Depends, search) {
+			if isDependency(pkg.Depends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "makedepends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if inSlice(pkg.MakeDepends, search) {
+			if isDependency(pkg.MakeDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "optdepends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if sliceContainsBeginsWith(pkg.OptDepends, search) {
+			if isDependency(pkg.OptDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "checkdepends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if inSlice(pkg.CheckDepends, search) {
+			if isDependency(pkg.CheckDepends, search) {
 				found = append(found, pkg)
 			}
 		}

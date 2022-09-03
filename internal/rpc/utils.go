@@ -162,10 +162,18 @@ func inSlice(s []string, e string) bool {
 	return false
 }
 
-func sliceContainsBeginsWith(s []string, e string) bool {
+func isDependency(s []string, e string) bool {
 	for _, a := range s {
-		if strings.HasPrefix(a, e) {
+		if a == e {
 			return true
+		}
+		if strings.HasPrefix(a, e) {
+			t := a[len(e) : len(e)+1]
+			for _, c := range []string{"<", ">", "=", ":"} {
+				if c == t {
+					return true
+				}
+			}
 		}
 	}
 	return false
