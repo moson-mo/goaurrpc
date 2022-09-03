@@ -97,25 +97,49 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		}
 	case "depends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if isDependency(pkg.Depends, search) {
+			if pkgBeginsWith(pkg.Depends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "makedepends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if isDependency(pkg.MakeDepends, search) {
+			if pkgBeginsWith(pkg.MakeDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "optdepends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if isDependency(pkg.OptDepends, search) {
+			if pkgBeginsWith(pkg.OptDepends, search) {
 				found = append(found, pkg)
 			}
 		}
 	case "checkdepends":
 		for _, pkg := range s.memDB.PackageInfos {
-			if isDependency(pkg.CheckDepends, search) {
+			if pkgBeginsWith(pkg.CheckDepends, search) {
+				found = append(found, pkg)
+			}
+		}
+	case "provides":
+		for _, pkg := range s.memDB.PackageInfos {
+			if pkgBeginsWith(pkg.Provides, search) {
+				found = append(found, pkg)
+			}
+		}
+	case "conflicts":
+		for _, pkg := range s.memDB.PackageInfos {
+			if inSlice(pkg.Conflicts, search) {
+				found = append(found, pkg)
+			}
+		}
+	case "replaces":
+		for _, pkg := range s.memDB.PackageInfos {
+			if inSlice(pkg.Replaces, search) {
+				found = append(found, pkg)
+			}
+		}
+	case "keywords":
+		for _, pkg := range s.memDB.PackageInfos {
+			if inSlice(pkg.Keywords, search) {
 				found = append(found, pkg)
 			}
 		}

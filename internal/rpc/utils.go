@@ -162,7 +162,7 @@ func inSlice(s []string, e string) bool {
 	return false
 }
 
-func isDependency(s []string, e string) bool {
+func pkgBeginsWith(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
 			return true
