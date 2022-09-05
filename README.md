@@ -29,3 +29,13 @@ If this parameter is not passed, the default config will be used (sample.conf co
 Feel free to make use of the following public instance of goaurrpc:   
 
 [HTTP](http://server.moson.rocks/rpc) / [HTTPS](https://server.moson.rocks/rpc)
+
+### Future plans / ideas
+
+- Extend request types (see [v5ext branch](https://github.com/moson-mo/goaurrpc/tree/v5ext))
+- Admin REST-API to be able to control goaurrpc at runtime, for example:
+  - reload data
+  - get statistics (memory consumption, rate limits, etc.)
+  - manage rate-limits
+  - manage search-cache
+- CLI/TUI tool for administration (making use of the admin api)
