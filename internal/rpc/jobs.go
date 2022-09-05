@@ -90,6 +90,7 @@ func (s *server) reloadData() error {
 	defer s.mut.Unlock()
 	s.memDB = ptr
 	s.lastmod = lmod
+	s.lastRefresh = time.Now()
 	return nil
 }
 

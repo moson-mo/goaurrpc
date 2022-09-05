@@ -103,7 +103,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 	suite.ExpectedRateLimit = `{"error":"Rate limit reached","resultcount":0,"results":[],"type":"error","version":null}`
 
 	var err error
-	suite.srv, err = New(conf, false)
+	suite.srv, err = New(conf, false, "")
 	suite.Nil(err, "Could not create rpc server")
 	suite.srv.verbose = true
 }

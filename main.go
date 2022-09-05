@@ -33,7 +33,7 @@ func main() {
 
 	// construct new server and start listening for requests
 	fmt.Printf("goaurrpc v%s is starting...\n\n", version)
-	s, err := rpc.New(*settings, *verbose)
+	s, err := rpc.New(*settings, *verbose, version)
 	if err != nil {
 		panic(err)
 	}

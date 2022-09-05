@@ -31,15 +31,18 @@ type server struct {
 	searchCache map[string]CacheEntry
 	lastmod     string
 	verbose     bool
+	ver         string
+	lastRefresh time.Time
 }
 
 // New creates a new server and immediately loads package data into memory
-func New(settings config.Settings, verbose bool) (*server, error) {
+func New(settings config.Settings, verbose bool, version string) (*server, error) {
 	s := server{
 		rateLimits:  make(map[string]RateLimit),
 		searchCache: make(map[string]CacheEntry),
 		stop:        make(chan os.Signal, 1),
 		verbose:     verbose,
+		ver:         version,
 	}
 
 	// prep logging
@@ -78,6 +81,7 @@ func (s *server) Listen() error {
 	// routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("/rpc", s.rpcHandler)
+	mux.HandleFunc("/rpc/info", s.rpcInfoHandler)
 
 	srv := http.Server{
 		Addr:    ":" + strconv.Itoa(s.settings.Port),
