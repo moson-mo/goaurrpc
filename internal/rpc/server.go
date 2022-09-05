@@ -81,6 +81,7 @@ func (s *server) Listen() error {
 	// routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("/rpc", s.rpcHandler)
+	mux.HandleFunc("/rpc/", s.rpcHandler)
 	mux.HandleFunc("/rpc/info", s.rpcInfoHandler)
 
 	srv := http.Server{
