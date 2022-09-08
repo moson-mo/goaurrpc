@@ -121,9 +121,12 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		}
 	case "provides":
 		for _, pkg := range s.memDB.PackageInfos {
-			if pkgBeginsWith(pkg.Provides, search) {
+			if pkgBeginsWith(pkg.Provides, search) && pkg.Name != search {
 				found = append(found, pkg)
 			}
+		}
+		if pkg, f := s.memDB.Packages[search]; f {
+			found = append(found, pkg)
 		}
 	case "conflicts":
 		for _, pkg := range s.memDB.PackageInfos {
