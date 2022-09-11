@@ -3,6 +3,7 @@ module github.com/moson-mo/goaurrpc
 go 1.18
 
 require (
+	github.com/gorilla/mux v1.8.0
 	github.com/stretchr/testify v1.7.2
 	gopkg.in/guregu/null.v4 v4.0.0
 )

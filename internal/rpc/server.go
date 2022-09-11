@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	gmux "github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"gopkg.in/guregu/null.v4"
@@ -79,10 +80,13 @@ func (s *server) Listen() error {
 	s.startJobs(shutdown, &wg)
 
 	// routes
-	mux := http.NewServeMux()
+	mux := gmux.NewRouter()
 	mux.HandleFunc("/rpc", s.rpcHandler)
 	mux.HandleFunc("/rpc/", s.rpcHandler)
 	mux.HandleFunc("/rpc/info", s.rpcInfoHandler)
+
+	mux.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
+	mux.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
 
 	srv := http.Server{
 		Addr:    ":" + strconv.Itoa(s.settings.Port),
@@ -124,6 +128,17 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		qstr = r.PostForm
 	}
+
+	// override query string if we have path variables
+	vars := gmux.Vars(r)
+	if len(vars) > 0 {
+		qstr.Set("v", vars["version"])
+		qstr.Set("type", vars["type"])
+		if vars["name"] != "" {
+			qstr.Set("arg", vars["name"])
+		}
+	}
+
 	t := qstr.Get("type")
 	v := qstr.Get("v")
 	version, _ := strconv.Atoi(v)
