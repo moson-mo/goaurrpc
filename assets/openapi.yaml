@@ -4,145 +4,14 @@ info:
   description: AUR Metadata API
   version: '5.0'
 servers:
+  - url: https://aur.archlinux.org
   - url: https://server.moson.rocks
-components:
-  schemas:
-    SearchRecord:
-      type: object
-      properties:
-        resultcount:
-          type: integer
-        type:
-          type: string
-        results:
-          type: array
-          items:
-            type: object
-            properties:
-              Description:
-                type: string
-              Name:
-                type: string
-              NumVotes:
-                type: integer
-              Popularity:
-                type: integer
-              URLPath:
-                type: string
-              URL:
-                type: string
-              LastModified:
-                type: integer
-              Maintainer:
-                type: string
-              OutOfDate:
-                type: integer
-              Version:
-                type: string
-              FirstSubmitted:
-                type: integer
-              PackageBase:
-                type: string
-              ID:
-                type: integer
-              PackageBaseID:
-                type: integer
-        version:
-          type: integer
-        error:
-          type: string
-    InfoRecord:
-      type: object
-      properties:
-        resultcount:
-          type: integer
-        type:
-          type: string
-        results:
-          type: array
-          items:
-            type: object
-            properties:
-              Description:
-                type: string
-              Keywords:
-                type: array
-                items:
-                  type: string
-              NumVotes:
-                type: integer
-              Popularity:
-                type: number
-              URLPath:
-                type: string
-              License:
-                type: array
-                items:
-                  type: string
-              OptDepends:
-                type: array
-                items:
-                  type: string
-              CheckDepends:
-                type: array
-                items:
-                  type: string
-              URL:
-                type: string
-              Name:
-                type: string
-              LastModified:
-                type: integer
-              Maintainer:
-                type: string
-              MakeDepends:
-                type: array
-                items:
-                  type: string
-              OutOfDate:
-                type: string
-              Version:
-                type: string
-              FirstSubmitted:
-                type: integer
-              PackageBase:
-                type: string
-              ID:
-                type: integer
-              Depends:
-                type: array
-                items:
-                  type: string
-              Conflicts:
-                type: array
-                items:
-                  type: string
-              Provides:
-                type: array
-                items:
-                  type: string
-              Replaces:
-                type: array
-                items:
-                  type: string
-              Groups:
-                type: array
-                items:
-                  type: string
-              PackageBaseID:
-                type: integer
-        version:
-          type: integer
-        error:
-          type: string
-    SearchBy:
-      type: string
-      enum: [name, name-desc, depends, checkdepends, optdepends, makedepends, maintainer, provides, conflicts, keywords]
-    
 paths:
   /rpc/v5/search/{term}:
     get:
-      description: Search for packages
+      tags: [Searching]
+      description: Search for packages returning basic package information
+      summary: Single-term search
       parameters:
         - name: term
           in: path
@@ -159,16 +28,24 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SearchRecord'
+                $ref: '#/components/schemas/SearchResult'
+        default:
+          description: Error response
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/search:
     get:
-      description: Search for packages
+      tags: [Searching]
+      description: Search for packages returning basic package information
+      summary: Single-term search
       parameters:
         - name: arg
+          required: true
           in: query
           schema:
             type: string
-          required: true
         - name: by
           in: query
           schema:
@@ -179,10 +56,53 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SearchRecord'
+                $ref: '#/components/schemas/SearchResult'
+        default:
+          description: Error response
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+    post:
+      tags: [Searching]
+      description: Search for packages returning basic package information
+      summary: Single-term search
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                arg:
+                  type: string
+              required: [arg]
+            encoding:
+              terms:
+                style: form
+                explode: true
+      parameters:
+        - name: by
+          in: query
+          schema:
+            $ref: '#/components/schemas/SearchBy'
+      responses:
+        '200':
+          description: Search result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        default:
+          description: Error response
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/info/{pkgname}:
     get:
-      description: Get package information
+      tags: [Package data]
+      description: Get extended package information for a single package
+      summary: Single package lookup
       parameters:
         - name: pkgname
           in: path
@@ -195,10 +115,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InfoRecord'
+                $ref: '#/components/schemas/InfoResult'
+        default:
+          description: Error response
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/info:
     get:
-      description: Get package information
+      tags: [Package data]
+      description: Get extended package information for multiple packages
+      summary: Multiple package lookup
       parameters:
         - name: arg[]
           in: query
@@ -213,10 +141,51 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InfoRecord'
+                $ref: '#/components/schemas/InfoResult'
+        default:
+          description: Error response
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
+    post:
+      tags: [Package data]
+      description: Get extended package information for multiple packages
+      summary: Multiple package lookup
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                arg[]:
+                  type: array
+                  items:
+                    type: string
+              required:
+              - arg[]
+            encoding:
+              packages:
+                style: form
+                explode: true
+      responses:
+        '200':
+          description: Info result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InfoResult'
+        default:
+          description: Error response
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/suggest/{term}:
     get:
-      description: Get list of matching packages
+      tags: [Searching]
+      description: Get list of package-names starting with {term}
+      summary: Package name search (starts-with)
       parameters:
         - name: term
           in: path
@@ -230,3 +199,174 @@ paths:
             text/plain:
               schema:
                 type: string
+  /rpc/v5/suggest:
+    get:
+      tags: [Searching]
+      description: Get list of package-names starting with {term}
+      summary: Package name search (starts-with)
+      parameters:
+        - name: arg
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Suggest results
+          content:
+            text/plain:
+              schema:
+                type: string                
+components:
+  schemas:
+    SearchResult:
+      description: "SearchResult contains a list of basic information for packages matching the search-term(s)"
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/BaseResult'
+        - properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/PackageBasic'
+    SearchBy:
+      description: "List of package properties that can be used for searching. Note that for \"name\" and \"name-desc\" it will perform a \"contains\" search. Other options require the exact package-name or keyword"
+      type: string
+      enum:
+        - name
+        - name-desc
+        - depends
+        - checkdepends
+        - optdepends
+        - makedepends
+        - maintainer
+    InfoResult:
+      description: "InfoResult contains a list of extended package information for packages matching any of the provided \"pkgname\" values"
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/BaseResult'
+        - properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/PackageExtended'
+    PackageExtended:
+      description: "Detailed package information"
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/PackageBasic'
+        - properties:
+            License:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `license`"
+            Depends:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `depends`"
+            MakeDepends:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `makedepends`"
+            OptDepends:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `optdepends`"
+            CheckDepends:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `checkdepends`"
+            Provides:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `provides`"
+            Conflicts:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `conflicts`"
+            Replaces:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `replaces`"
+            Groups:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `groups`"
+            Keywords:
+              type: array
+              items:
+                type: string
+              description: "From PKGBUILD `keywords`"
+    PackageBasic:
+      description: "Basic package information"
+      type: object
+      properties:
+        ID:
+          type: integer
+          description: "Auto-generated ID"
+        Name:
+          type: string
+          description: "From PKGBUILD `pkgname`"
+        Description:
+          type: string
+          description: "From PKGBUILD `pkgdesc`"
+        PackageBaseID:
+          type: integer
+        PackageBase:
+          type: string
+        Maintainer:
+          type: string
+        NumVotes:
+          type: integer
+        Popularity:
+          type: number
+        FirstSubmitted:
+          type: integer
+          description: "UNIX timestamp"
+        LastModified:
+          type: integer
+          description: "UNIX timestamp"
+        OutOfDate:
+          type: string
+          description: "UNIX timestamp, or null if not flagged"
+        Version:
+          type: string
+          description: "From PKGBUILD `pkgver`-`pkgrel`"
+        URLPath:
+          type: string
+          description: "Path to gzipped snapshot"
+        URL:
+          type: string
+          description: "From PKGBUILD `url`"
+    ErrorResult:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/BaseResult'
+        - properties:
+            error:
+              type: string
+              description: "Error message"
+            results:
+              type: array
+              items:
+                type: object
+    BaseResult:
+      properties:
+        resultcount:
+          type: integer
+          description: "Number of search results"
+        type:
+          type: string
+          description: "Type of API call"
+        version:
+          type: integer
+          description: "API Version"
