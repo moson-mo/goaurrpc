@@ -3,13 +3,19 @@ info:
   title: AUR /rpc
   description: AUR Metadata API
   version: '5.0'
+  contact:
+    name: "Report issues here: Gitlab - aurweb"
+    url: https://gitlab.archlinux.org/archlinux/aurweb
 servers:
   - url: https://aur.archlinux.org
+    description: Official aurweb endpoint
   - url: https://server.moson.rocks
+    description: Self-hosted Go implementation
 paths:
   /rpc/v5/search/{term}:
     get:
-      tags: [Searching]
+      tags:
+        - Searching
       description: Search for packages returning basic package information
       summary: Single-term search
       parameters:
@@ -31,13 +37,14 @@ paths:
                 $ref: '#/components/schemas/SearchResult'
         default:
           description: Error response
-          content: 
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/search:
     get:
-      tags: [Searching]
+      tags:
+        - Searching
       description: Search for packages returning basic package information
       summary: Single-term search
       parameters:
@@ -59,12 +66,13 @@ paths:
                 $ref: '#/components/schemas/SearchResult'
         default:
           description: Error response
-          content: 
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResult'
     post:
-      tags: [Searching]
+      tags:
+        - Searching
       description: Search for packages returning basic package information
       summary: Single-term search
       requestBody:
@@ -75,7 +83,8 @@ paths:
               properties:
                 arg:
                   type: string
-              required: [arg]
+              required:
+                - arg
             encoding:
               terms:
                 style: form
@@ -94,13 +103,14 @@ paths:
                 $ref: '#/components/schemas/SearchResult'
         default:
           description: Error response
-          content: 
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/info/{pkgname}:
     get:
-      tags: [Package data]
+      tags:
+        - Package data
       description: Get extended package information for a single package
       summary: Single package lookup
       parameters:
@@ -118,13 +128,14 @@ paths:
                 $ref: '#/components/schemas/InfoResult'
         default:
           description: Error response
-          content: 
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/info:
     get:
-      tags: [Package data]
+      tags:
+        - Package data
       description: Get extended package information for multiple packages
       summary: Multiple package lookup
       parameters:
@@ -144,12 +155,13 @@ paths:
                 $ref: '#/components/schemas/InfoResult'
         default:
           description: Error response
-          content: 
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResult'
     post:
-      tags: [Package data]
+      tags:
+        - Package data
       description: Get extended package information for multiple packages
       summary: Multiple package lookup
       requestBody:
@@ -163,9 +175,9 @@ paths:
                   items:
                     type: string
               required:
-              - arg[]
+                - arg[]
             encoding:
-              packages:
+              arg[]:
                 style: form
                 explode: true
       responses:
@@ -177,13 +189,14 @@ paths:
                 $ref: '#/components/schemas/InfoResult'
         default:
           description: Error response
-          content: 
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/suggest/{term}:
     get:
-      tags: [Searching]
+      tags:
+        - Searching
       description: Get list of package-names starting with {term}
       summary: Package name search (starts-with)
       parameters:
@@ -201,7 +214,8 @@ paths:
                 type: string
   /rpc/v5/suggest:
     get:
-      tags: [Searching]
+      tags:
+        - Searching
       description: Get list of package-names starting with {term}
       summary: Package name search (starts-with)
       parameters:
@@ -216,11 +230,13 @@ paths:
           content:
             text/plain:
               schema:
-                type: string                
+                type: string
 components:
   schemas:
     SearchResult:
-      description: "SearchResult contains a list of basic information for packages matching the search-term(s)"
+      description: >-
+        SearchResult contains a list of basic information for packages matching
+        the search-term(s)
       type: object
       allOf:
         - $ref: '#/components/schemas/BaseResult'
@@ -230,7 +246,10 @@ components:
               items:
                 $ref: '#/components/schemas/PackageBasic'
     SearchBy:
-      description: "List of package properties that can be used for searching. Note that for \"name\" and \"name-desc\" it will perform a \"contains\" search. Other options require the exact package-name or keyword"
+      description: >-
+        List of package properties that can be used for searching. Note that for
+        "name" and "name-desc" it will perform a "contains" search. Other
+        options require the exact package-name or keyword
       type: string
       enum:
         - name
@@ -241,7 +260,9 @@ components:
         - makedepends
         - maintainer
     InfoResult:
-      description: "InfoResult contains a list of extended package information for packages matching any of the provided \"pkgname\" values"
+      description: >-
+        InfoResult contains a list of extended package information for packages
+        matching any of the provided "pkgname" values
       type: object
       allOf:
         - $ref: '#/components/schemas/BaseResult'
@@ -251,7 +272,7 @@ components:
               items:
                 $ref: '#/components/schemas/PackageExtended'
     PackageExtended:
-      description: "Detailed package information"
+      description: Detailed package information
       type: object
       allOf:
         - $ref: '#/components/schemas/PackageBasic'
@@ -260,65 +281,65 @@ components:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `license`"
+              description: From PKGBUILD `license`
             Depends:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `depends`"
+              description: From PKGBUILD `depends`
             MakeDepends:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `makedepends`"
+              description: From PKGBUILD `makedepends`
             OptDepends:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `optdepends`"
+              description: From PKGBUILD `optdepends`
             CheckDepends:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `checkdepends`"
+              description: From PKGBUILD `checkdepends`
             Provides:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `provides`"
+              description: From PKGBUILD `provides`
             Conflicts:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `conflicts`"
+              description: From PKGBUILD `conflicts`
             Replaces:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `replaces`"
+              description: From PKGBUILD `replaces`
             Groups:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `groups`"
+              description: From PKGBUILD `groups`
             Keywords:
               type: array
               items:
                 type: string
-              description: "From PKGBUILD `keywords`"
+              description: From PKGBUILD `keywords`
     PackageBasic:
-      description: "Basic package information"
+      description: Basic package information
       type: object
       properties:
         ID:
           type: integer
-          description: "Auto-generated ID"
+          description: Auto-generated ID
         Name:
           type: string
-          description: "From PKGBUILD `pkgname`"
+          description: From PKGBUILD `pkgname`
         Description:
           type: string
-          description: "From PKGBUILD `pkgdesc`"
+          description: From PKGBUILD `pkgdesc`
         PackageBaseID:
           type: integer
         PackageBase:
@@ -331,22 +352,22 @@ components:
           type: number
         FirstSubmitted:
           type: integer
-          description: "UNIX timestamp"
+          description: UNIX timestamp
         LastModified:
           type: integer
-          description: "UNIX timestamp"
+          description: UNIX timestamp
         OutOfDate:
           type: string
-          description: "UNIX timestamp, or null if not flagged"
+          description: UNIX timestamp, or null if not flagged
         Version:
           type: string
-          description: "From PKGBUILD `pkgver`-`pkgrel`"
+          description: From PKGBUILD `pkgver`-`pkgrel`
         URLPath:
           type: string
-          description: "Path to gzipped snapshot"
+          description: Path to gzipped snapshot
         URL:
           type: string
-          description: "From PKGBUILD `url`"
+          description: From PKGBUILD `url`
     ErrorResult:
       type: object
       allOf:
@@ -354,7 +375,7 @@ components:
         - properties:
             error:
               type: string
-              description: "Error message"
+              description: Error message
             results:
               type: array
               items:
@@ -363,10 +384,10 @@ components:
       properties:
         resultcount:
           type: integer
-          description: "Number of search results"
+          description: Number of search results
         type:
           type: string
-          description: "Type of API call"
+          description: Type of API call
         version:
           type: integer
-          description: "API Version"
+          description: API Version

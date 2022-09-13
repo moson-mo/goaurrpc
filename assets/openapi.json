@@ -3,14 +3,20 @@
   "info": {
     "title": "AUR /rpc",
     "description": "AUR Metadata API",
-    "version": "5.0"
+    "version": "5.0",
+    "contact": {
+      "name": "Report issues here: Gitlab - aurweb",
+      "url": "https://gitlab.archlinux.org/archlinux/aurweb"
+    }
   },
   "servers": [
     {
-      "url": "https://aur.archlinux.org"
+      "url": "https://aur.archlinux.org",
+      "description": "Official aurweb endpoint"
     },
     {
-      "url": "https://server.moson.rocks"
+      "url": "https://server.moson.rocks",
+      "description": "Self-hosted Go implementation"
     }
   ],
   "paths": {
@@ -279,7 +285,7 @@
                 ]
               },
               "encoding": {
-                "packages": {
+                "arg[]": {
                   "style": "form",
                   "explode": true
                 }
