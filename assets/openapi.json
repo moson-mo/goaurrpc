@@ -2,12 +2,8 @@
   "openapi": "3.0.1",
   "info": {
     "title": "AUR /rpc",
-    "description": "AUR Metadata API",
-    "version": "5.0",
-    "contact": {
-      "name": "Report issues here: Gitlab - aurweb",
-      "url": "https://gitlab.archlinux.org/archlinux/aurweb"
-    }
+    "description": "## AUR Metadata API version 5\nReport any issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)\n",
+    "version": "5.0"
   },
   "servers": [
     {
@@ -16,34 +12,30 @@
     },
     {
       "url": "https://server.moson.rocks",
-      "description": "Self-hosted Go implementation"
+      "description": "Unofficial Go implementation"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Package search"
     }
   ],
   "paths": {
-    "/rpc/v5/search/{term}": {
+    "/rpc/v5/search/{arg}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/Term"
+        },
+        {
+          "$ref": "#/components/parameters/SearchBy"
+        }
+      ],
       "get": {
         "tags": [
-          "Searching"
+          "Package search"
         ],
-        "description": "Search for packages returning basic package information",
+        "description": "### Search for packages with a single term returning basic package information\n",
         "summary": "Single-term search",
-        "parameters": [
-          {
-            "name": "term",
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
-          },
-          {
-            "name": "by",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/SearchBy"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Search result",
@@ -69,27 +61,20 @@
       }
     },
     "/rpc/v5/search": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SearchBy"
+        }
+      ],
       "get": {
         "tags": [
-          "Searching"
+          "Package search"
         ],
-        "description": "Search for packages returning basic package information",
+        "description": "### Search for packages with a single term returning basic package information\n",
         "summary": "Single-term search",
         "parameters": [
           {
-            "name": "arg",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "by",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/SearchBy"
-            }
+            "$ref": "#/components/parameters/Term"
           }
         ],
         "responses": {
@@ -117,42 +102,13 @@
       },
       "post": {
         "tags": [
-          "Searching"
+          "Package search"
         ],
-        "description": "Search for packages returning basic package information",
+        "description": "### Search for packages with a single term returning basic package information\n",
         "summary": "Single-term search",
         "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "arg": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "arg"
-                ]
-              },
-              "encoding": {
-                "terms": {
-                  "style": "form",
-                  "explode": true
-                }
-              }
-            }
-          }
+          "$ref": "#/components/requestBodies/SearchBody"
         },
-        "parameters": [
-          {
-            "name": "by",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/SearchBy"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Search result",
@@ -177,21 +133,16 @@
         }
       }
     },
-    "/rpc/v5/info/{pkgname}": {
+    "/rpc/v5/info/{arg}": {
       "get": {
         "tags": [
-          "Package data"
+          "Package details"
         ],
-        "description": "Get extended package information for a single package",
+        "description": "### Get detailed information for a single package \nReturns detailed information of a package.\n",
         "summary": "Single package lookup",
         "parameters": [
           {
-            "name": "pkgname",
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
+            "$ref": "#/components/parameters/Pkgname"
           }
         ],
         "responses": {
@@ -221,21 +172,13 @@
     "/rpc/v5/info": {
       "get": {
         "tags": [
-          "Package data"
+          "Package details"
         ],
-        "description": "Get extended package information for multiple packages",
-        "summary": "Multiple package lookup",
+        "description": "### Get detailed information for multiple packages\n",
+        "summary": "Multi package lookup",
         "parameters": [
           {
-            "name": "arg[]",
-            "in": "query",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "required": true
+            "$ref": "#/components/parameters/Pkgnames"
           }
         ],
         "responses": {
@@ -263,35 +206,12 @@
       },
       "post": {
         "tags": [
-          "Package data"
+          "Package details"
         ],
-        "description": "Get extended package information for multiple packages",
-        "summary": "Multiple package lookup",
+        "description": "### Get detailed information for multiple packages \n",
+        "summary": "Multi package lookup",
         "requestBody": {
-          "content": {
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "arg[]": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "required": [
-                  "arg[]"
-                ]
-              },
-              "encoding": {
-                "arg[]": {
-                  "style": "form",
-                  "explode": true
-                }
-              }
-            }
-          }
+          "$ref": "#/components/requestBodies/InfoBody"
         },
         "responses": {
           "200": {
@@ -317,16 +237,16 @@
         }
       }
     },
-    "/rpc/v5/suggest/{term}": {
+    "/rpc/v5/suggest/{arg}": {
       "get": {
         "tags": [
-          "Searching"
+          "Package search"
         ],
-        "description": "Get list of package-names starting with {term}",
+        "description": "### Returns a list of package-names starting with {term}\n",
         "summary": "Package name search (starts-with)",
         "parameters": [
           {
-            "name": "term",
+            "name": "arg",
             "in": "path",
             "schema": {
               "type": "string"
@@ -351,10 +271,72 @@
     "/rpc/v5/suggest": {
       "get": {
         "tags": [
-          "Searching"
+          "Package search"
         ],
-        "description": "Get list of package-names starting with {term}",
+        "description": "### Returns a list of package-names starting with {term}\n",
         "summary": "Package name search (starts-with)",
+        "parameters": [
+          {
+            "name": "arg",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v5/suggest-pkgbase/{arg}": {
+      "get": {
+        "tags": [
+          "Package search"
+        ],
+        "description": "### Returns a list of package-base-names starting with {term}\n",
+        "summary": "Package base search (starts-with)",
+        "parameters": [
+          {
+            "name": "arg",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v5/suggest-pkgbase": {
+      "get": {
+        "tags": [
+          "Package search"
+        ],
+        "description": "### Returns a list of package-base-names starting with {term}\n",
+        "summary": "Package base search (starts-with)",
         "parameters": [
           {
             "name": "arg",
@@ -394,24 +376,23 @@
               "results": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/PackageBasic"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/PackageBasic"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "term": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }
           }
-        ]
-      },
-      "SearchBy": {
-        "description": "List of package properties that can be used for searching. Note that for \"name\" and \"name-desc\" it will perform a \"contains\" search. Other options require the exact package-name or keyword",
-        "type": "string",
-        "enum": [
-          "name",
-          "name-desc",
-          "depends",
-          "checkdepends",
-          "optdepends",
-          "makedepends",
-          "maintainer"
         ]
       },
       "InfoResult": {
@@ -520,10 +501,6 @@
         "description": "Basic package information",
         "type": "object",
         "properties": {
-          "ID": {
-            "type": "integer",
-            "description": "Auto-generated ID"
-          },
           "Name": {
             "type": "string",
             "description": "From PKGBUILD `pkgname`"
@@ -532,14 +509,12 @@
             "type": "string",
             "description": "From PKGBUILD `pkgdesc`"
           },
-          "PackageBaseID": {
-            "type": "integer"
-          },
           "PackageBase": {
             "type": "string"
           },
           "Maintainer": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "NumVotes": {
             "type": "integer"
@@ -589,7 +564,8 @@
                 "type": "array",
                 "items": {
                   "type": "object"
-                }
+                },
+                "default": []
               }
             }
           }
@@ -608,6 +584,103 @@
           "version": {
             "type": "integer",
             "description": "API Version"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "SearchBy": {
+        "name": "by",
+        "description": "The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used   \nFor ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.\n",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "name",
+            "name-desc",
+            "depends",
+            "checkdepends",
+            "optdepends",
+            "makedepends",
+            "maintainer"
+          ],
+          "default": "name-desc"
+        }
+      },
+      "Term": {
+        "name": "arg",
+        "description": "Use the ***{arg}*** parameter (string) to specifcy your search-term.\n",
+        "in": "path",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "Pkgname": {
+        "name": "arg",
+        "description": "Use the ***{arg}*** parameter to specifcy the package name.\n",
+        "in": "path",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "Pkgnames": {
+        "name": "arg[]",
+        "description": "The ***{arg[]}*** parameter allows to specify one or more package names so that you can run multiple lookups in just one API call.\n",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required": true
+      }
+    },
+    "requestBodies": {
+      "SearchBody": {
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "arg": {
+                  "description": "The ***{arg}*** parameter allows to specify a search-term.\n",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "arg"
+              ]
+            }
+          }
+        }
+      },
+      "InfoBody": {
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "arg[]": {
+                  "description": "The ***{arg[]}*** parameter allows to specify one or more package names so that you can run multiple lookups in just one API call.\n",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "arg[]"
+              ]
+            },
+            "encoding": {
+              "arg[]": {
+                "style": "form",
+                "explode": true
+              }
+            }
           }
         }
       }
