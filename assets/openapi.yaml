@@ -3,7 +3,7 @@ info:
   title: AUR /rpc
   description: |
     ## AUR Metadata API version 5
-    Report any issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)
+    Report issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)
   version: '5.0'
 servers:
   - url: https://aur.archlinux.org
@@ -37,8 +37,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResult'
   /rpc/v5/search:
-    parameters: 
-      - $ref: '#/components/parameters/SearchBy'
     get:
       tags:
         - Package search
@@ -47,6 +45,7 @@ paths:
       summary: Single-term search
       parameters:
         - $ref: '#/components/parameters/Term'
+        - $ref: '#/components/parameters/SearchBy'
       responses:
         '200':
           description: Search result
@@ -86,8 +85,7 @@ paths:
       tags:
         - Package details
       description: |
-        ### Get detailed information for a single package 
-        Returns detailed information of a package.
+        ### Get detailed information for a single package
       summary: Single package lookup
       parameters:
         - $ref: '#/components/parameters/Pkgname'
@@ -152,7 +150,7 @@ paths:
       tags:
         - Package search
       description: |
-        ### Returns a list of package-names starting with {term}
+        ### Returns a list of package-names starting with {arg}
       summary: Package name search (starts-with)
       parameters:
         - name: arg
@@ -172,7 +170,7 @@ paths:
       tags:
         - Package search
       description: |
-        ### Returns a list of package-names starting with {term}
+        ### Returns a list of package-names starting with {arg}
       summary: Package name search (starts-with)
       parameters:
         - name: arg
@@ -192,7 +190,7 @@ paths:
       tags:
         - Package search
       description: |
-        ### Returns a list of package-base-names starting with {term}
+        ### Returns a list of package-base-names starting with {arg}
       summary: Package base search (starts-with)
       parameters:
         - name: arg
@@ -212,7 +210,7 @@ paths:
       tags:
         - Package search
       description: |
-        ### Returns a list of package-base-names starting with {term}
+        ### Returns a list of package-base-names starting with {arg}
       summary: Package base search (starts-with)
       parameters:
         - name: arg
@@ -430,6 +428,20 @@ components:
                 description: |
                   The ***{arg}*** parameter allows to specify a search-term.
                 type: string
+              by:
+                description: |
+                  The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used   
+                  For ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.
+                type: string
+                enum:
+                  - name
+                  - name-desc
+                  - depends
+                  - checkdepends
+                  - optdepends
+                  - makedepends
+                  - maintainer
+                default: name-desc
             required:
               - arg
     InfoBody:

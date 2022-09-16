@@ -57,7 +57,7 @@ func (s *server) startJobs(shutdown chan struct{}, wg *sync.WaitGroup) {
 		for {
 			select {
 			case <-shutdown:
-				s.LogVerbose("Stopping routine: Refresh")
+				s.LogVerbose("Stopping routine: Search-Cache cleanup")
 				return
 			case <-time.After(time.Duration(s.settings.CacheCleanupInterval) * time.Second):
 				s.cleanupSearchCache()

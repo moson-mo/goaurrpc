@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "AUR /rpc",
-    "description": "## AUR Metadata API version 5\nReport any issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)\n",
+    "description": "## AUR Metadata API version 5\nReport issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)\n",
     "version": "5.0"
   },
   "servers": [
@@ -61,11 +61,6 @@
       }
     },
     "/rpc/v5/search": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/SearchBy"
-        }
-      ],
       "get": {
         "tags": [
           "Package search"
@@ -75,6 +70,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/Term"
+          },
+          {
+            "$ref": "#/components/parameters/SearchBy"
           }
         ],
         "responses": {
@@ -138,7 +136,7 @@
         "tags": [
           "Package details"
         ],
-        "description": "### Get detailed information for a single package \nReturns detailed information of a package.\n",
+        "description": "### Get detailed information for a single package\n",
         "summary": "Single package lookup",
         "parameters": [
           {
@@ -242,7 +240,7 @@
         "tags": [
           "Package search"
         ],
-        "description": "### Returns a list of package-names starting with {term}\n",
+        "description": "### Returns a list of package-names starting with {arg}\n",
         "summary": "Package name search (starts-with)",
         "parameters": [
           {
@@ -273,7 +271,7 @@
         "tags": [
           "Package search"
         ],
-        "description": "### Returns a list of package-names starting with {term}\n",
+        "description": "### Returns a list of package-names starting with {arg}\n",
         "summary": "Package name search (starts-with)",
         "parameters": [
           {
@@ -304,7 +302,7 @@
         "tags": [
           "Package search"
         ],
-        "description": "### Returns a list of package-base-names starting with {term}\n",
+        "description": "### Returns a list of package-base-names starting with {arg}\n",
         "summary": "Package base search (starts-with)",
         "parameters": [
           {
@@ -335,7 +333,7 @@
         "tags": [
           "Package search"
         ],
-        "description": "### Returns a list of package-base-names starting with {term}\n",
+        "description": "### Returns a list of package-base-names starting with {arg}\n",
         "summary": "Package base search (starts-with)",
         "parameters": [
           {
@@ -648,6 +646,20 @@
                 "arg": {
                   "description": "The ***{arg}*** parameter allows to specify a search-term.\n",
                   "type": "string"
+                },
+                "by": {
+                  "description": "The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used   \nFor ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.\n",
+                  "type": "string",
+                  "enum": [
+                    "name",
+                    "name-desc",
+                    "depends",
+                    "checkdepends",
+                    "optdepends",
+                    "makedepends",
+                    "maintainer"
+                  ],
+                  "default": "name-desc"
                 }
               },
               "required": [
