@@ -19,6 +19,7 @@ func LoadDbFromFile(path string) (*MemoryDB, error) {
 		if err != nil {
 			return nil, err
 		}
+		defer gz.Close()
 		r, err := gzip.NewReader(gz)
 		if err != nil {
 			return nil, err
