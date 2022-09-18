@@ -10,11 +10,11 @@ servers:
     description: Official aurweb endpoint
   - url: https://server.moson.rocks
     description: Unofficial Go implementation
-tags: 
+tags:
   - name: Package search
 paths:
   /rpc/v5/search/{arg}:
-    parameters: 
+    parameters:
       - $ref: '#/components/parameters/Term'
       - $ref: '#/components/parameters/SearchBy'
     get:
@@ -173,11 +173,7 @@ paths:
         ### Returns a list of package-names starting with {arg}
       summary: Package name search (starts-with)
       parameters:
-        - name: arg
-          in: query
-          schema:
-            type: string
-          required: true
+        - $ref: '#/components/parameters/Term'
       responses:
         '200':
           description: Suggest results
@@ -193,11 +189,7 @@ paths:
         ### Returns a list of package-base-names starting with {arg}
       summary: Package base search (starts-with)
       parameters:
-        - name: arg
-          in: path
-          schema:
-            type: string
-          required: true
+        - $ref: '#/components/parameters/Term'
       responses:
         '200':
           description: Suggest results
@@ -213,11 +205,7 @@ paths:
         ### Returns a list of package-base-names starting with {arg}
       summary: Package base search (starts-with)
       parameters:
-        - name: arg
-          in: query
-          schema:
-            type: string
-          required: true
+        - $ref: '#/components/parameters/Term'
       responses:
         '200':
           description: Suggest results
@@ -228,9 +216,7 @@ paths:
 components:
   schemas:
     SearchResult:
-      description: >-
-        SearchResult contains a list of basic information for packages matching
-        the search-term(s)
+      description: SearchResult contains a list of basic package information
       type: object
       allOf:
         - $ref: '#/components/schemas/BaseResult'
@@ -245,9 +231,7 @@ components:
                       term:
                         type: string
     InfoResult:
-      description: >-
-        InfoResult contains a list of extended package information for packages
-        matching any of the provided "pkgname" values
+      description: InfoResult contains a list of detailed package information
       type: object
       allOf:
         - $ref: '#/components/schemas/BaseResult'
@@ -377,7 +361,7 @@ components:
     SearchBy:
       name: by
       description: |
-        The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used   
+        The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used.   
         For ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.
       in: query
       schema:
@@ -394,7 +378,7 @@ components:
     Term:
       name: arg
       description: |
-        Use the ***{arg}*** parameter (string) to specifcy your search-term.
+        Provide your search-term in the ***{arg}*** parameter.
       in: path
       schema:
         type: string
@@ -402,7 +386,7 @@ components:
     Pkgname:
       name: arg
       description: |
-        Use the ***{arg}*** parameter to specifcy the package name.
+        Provide a package name in the ***{arg}*** parameter.
       in: path
       schema:
         type: string
@@ -410,7 +394,7 @@ components:
     Pkgnames:
       name: arg[]
       description: |
-        The ***{arg[]}*** parameter allows to specify one or more package names so that you can run multiple lookups in just one API call.
+        Provide one or more package names in the ***{arg[]}*** parameter.
       in: query
       schema:
         type: array
@@ -426,11 +410,11 @@ components:
             properties:
               arg:
                 description: |
-                  The ***{arg}*** parameter allows to specify a search-term.
+                  Provide your search-term in the ***{arg}*** parameter.
                 type: string
               by:
                 description: |
-                  The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used   
+                  The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used.   
                   For ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.
                 type: string
                 enum:
@@ -452,7 +436,7 @@ components:
             properties:
               arg[]:
                 description: |
-                  The ***{arg[]}*** parameter allows to specify one or more package names so that you can run multiple lookups in just one API call.
+                  Provide one or more package names in the ***{arg[]}*** parameter.
                 type: array
                 items:
                   type: string
@@ -462,5 +446,3 @@ components:
             arg[]:
               style: form
               explode: true
-    
-    
