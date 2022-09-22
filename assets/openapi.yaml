@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: AUR /rpc
   description: |
-    ## AUR Metadata API version 5
+    ## AUR Metadata API - Version 5
     Report issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)
   version: '5.0'
 servers:
@@ -15,7 +15,7 @@ tags:
 paths:
   /rpc/v5/search/{arg}:
     parameters:
-      - $ref: '#/components/parameters/Term'
+      - $ref: '#/components/parameters/TermPath'
       - $ref: '#/components/parameters/SearchBy'
     get:
       tags:
@@ -153,11 +153,7 @@ paths:
         ### Returns a list of package-names starting with {arg}
       summary: Package name search (starts-with)
       parameters:
-        - name: arg
-          in: path
-          schema:
-            type: string
-          required: true
+        - $ref: '#/components/parameters/TermPath'
       responses:
         '200':
           description: Suggest results
@@ -189,7 +185,7 @@ paths:
         ### Returns a list of package-base-names starting with {arg}
       summary: Package base search (starts-with)
       parameters:
-        - $ref: '#/components/parameters/Term'
+        - $ref: '#/components/parameters/TermPath'
       responses:
         '200':
           description: Suggest results
@@ -376,6 +372,14 @@ components:
           - maintainer
         default: name-desc
     Term:
+      name: arg
+      description: |
+        Provide your search-term in the ***{arg}*** parameter.
+      in: query
+      schema:
+        type: string
+      required: true
+    TermPath:
       name: arg
       description: |
         Provide your search-term in the ***{arg}*** parameter.

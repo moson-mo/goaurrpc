@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "AUR /rpc",
-    "description": "## AUR Metadata API version 5\nReport issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)\n",
+    "description": "## AUR Metadata API - Version 5\nReport issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)\n",
     "version": "5.0"
   },
   "servers": [
@@ -24,7 +24,7 @@
     "/rpc/v5/search/{arg}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/Term"
+          "$ref": "#/components/parameters/TermPath"
         },
         {
           "$ref": "#/components/parameters/SearchBy"
@@ -244,12 +244,7 @@
         "summary": "Package name search (starts-with)",
         "parameters": [
           {
-            "name": "arg",
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
+            "$ref": "#/components/parameters/TermPath"
           }
         ],
         "responses": {
@@ -301,7 +296,7 @@
         "summary": "Package base search (starts-with)",
         "parameters": [
           {
-            "$ref": "#/components/parameters/Term"
+            "$ref": "#/components/parameters/TermPath"
           }
         ],
         "responses": {
@@ -591,6 +586,15 @@
         }
       },
       "Term": {
+        "name": "arg",
+        "description": "Provide your search-term in the ***{arg}*** parameter.\n",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "TermPath": {
         "name": "arg",
         "description": "Provide your search-term in the ***{arg}*** parameter.\n",
         "in": "path",
