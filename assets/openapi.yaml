@@ -235,8 +235,8 @@ components:
             results:
               type: array
               items:
-                $ref: '#/components/schemas/PackageExtended'
-    PackageExtended:
+                $ref: '#/components/schemas/PackageDetailed'
+    PackageDetailed:
       description: Detailed package information
       type: object
       allOf:
@@ -296,12 +296,16 @@ components:
       description: Basic package information
       type: object
       properties:
+        ID:
+          type: integer
         Name:
           type: string
           description: From PKGBUILD `pkgname`
         Description:
           type: string
           description: From PKGBUILD `pkgdesc`
+        PackageBaseID:
+          type: integer
         PackageBase:
           type: string
         Maintainer:

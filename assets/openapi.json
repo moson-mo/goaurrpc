@@ -385,14 +385,14 @@
               "results": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/PackageExtended"
+                  "$ref": "#/components/schemas/PackageDetailed"
                 }
               }
             }
           }
         ]
       },
-      "PackageExtended": {
+      "PackageDetailed": {
         "description": "Detailed package information",
         "type": "object",
         "allOf": [
@@ -479,6 +479,9 @@
         "description": "Basic package information",
         "type": "object",
         "properties": {
+          "ID": {
+            "type": "integer"
+          },
           "Name": {
             "type": "string",
             "description": "From PKGBUILD `pkgname`"
@@ -486,6 +489,9 @@
           "Description": {
             "type": "string",
             "description": "From PKGBUILD `pkgdesc`"
+          },
+          "PackageBaseID": {
+            "type": "integer"
           },
           "PackageBase": {
             "type": "string"
