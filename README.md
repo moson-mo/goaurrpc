@@ -24,6 +24,47 @@ See `sample.conf` file. The config file can be loaded by specifying "-c" paramet
 For example: `./goaurrpc -c sample.conf`.
 If this parameter is not passed, the default config will be used (sample.conf contains the defaults).  
 
+```
+{
+	"Port": 10666,
+	"AurFileLocation": "https://aur.archlinux.org/packages-meta-ext-v1.json.gz",
+	"MaxResults": 5000,
+	"RefreshInterval": 300,
+	"RateLimit": 4000,
+	"LoadFromFile": false,
+	"RateLimitCleanupInterval": 600,
+	"RateLimitTimeWindow": 86400,
+	"TrustedReverseProxies": [
+		"127.0.0.1",
+		"::1"
+	],
+	"EnableSSL": false,
+	"CertFile": "",
+	"KeyFile": "",
+	"EnableSearchCache": true,
+	"CacheCleanupInterval": 60,
+	"CacheExpirationTime": 180
+}
+```
+
+| Setting | Description |
+| ------ | ------ |
+| Port | The port number our service is listening on |
+| AurFileLocation | Either the URL to the full metadata archive `packages-meta-ext-v1.json.gz` or a local copy of the file |
+| MaxResults | The maximum number of package results that are being returned to the client |
+| RefreshInterval | The interval (in seconds) in which the metadata file is being reloaded |
+| RateLimit | The maximum number of requests that are allowed within the time-window |
+| LoadFromFile | Set to true when using a local file instead of a URL for `AurFileLocation` |
+| RateLimitCleanupInterval | The interval (in seconds) in which rate-limits are being cleaned up |
+| RateLimitTimeWindow | Defines the length of the time window for rate-limiting (in seconds) |
+| Trusted reverse proxies | A list of trusted IP-Addresses, in case you use a reverse proxy and need to rely on `X-Real-IP` or `X-Forwarded-For` headers to identify a client (for rate-limiting) |
+| EnableSSL | Enables internal SSL/TLS. You'll need to provide `CertFile`and `KeyFile` when enabling it. I'd recommend to use nginx as reverse proxy to add encryption instead |
+| CertFile | Path to the cert file (if SSL is enabled) |
+| KeyFile | Path to the corresponding key file (if SSL is enabled) |
+| EnableSearchCache | Caches data for search queries that have been performed by clients |
+| CacheCleanupInterval | The interval (in seconds) for performing cleanup of search-cache entries |
+| CacheExpirationTime | The number of seconds an entry should stay in the search-cache |
+
 ### Public endpoint
 
 Feel free to make use of the following public instance of goaurrpc:   
@@ -32,7 +73,7 @@ Feel free to make use of the following public instance of goaurrpc:
 
 ### Future plans / ideas
 
-- Extend request types (see [v5ext branch](https://github.com/moson-mo/goaurrpc/tree/v5ext))
+- Extend request types (see [v6-proposal branch](https://github.com/moson-mo/goaurrpc/tree/v6-proposal))
 - Admin REST-API to be able to control goaurrpc at runtime, for example:
   - reload data
   - get statistics (memory consumption, rate limits, etc.)
