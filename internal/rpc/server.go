@@ -88,6 +88,8 @@ func (s *server) Listen() error {
 	// v5
 	s.router.HandleFunc("/rpc", s.rpcHandler)
 	s.router.HandleFunc("/rpc/", s.rpcHandler)
+	s.router.HandleFunc("/rpc.php", s.rpcHandler)  // should have been removed ?! but aurweb is answering
+	s.router.HandleFunc("/rpc.php/", s.rpcHandler) // should have been removed ?! but aurweb is answering
 	s.router.HandleFunc("/rpc/stats", s.rpcStatsHandler)
 
 	// v5 with url paths
