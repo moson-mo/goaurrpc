@@ -25,7 +25,7 @@ type RpcTestSuite struct {
 
 var conf = config.Settings{
 	Port:                  10666,
-	AurFileLocation:       "../../test_data/test_packages.json.gz",
+	AurFileLocation:       "../../test_data/test_packages.json",
 	MaxResults:            5000,
 	RefreshInterval:       600,
 	RateLimit:             4000,
@@ -42,6 +42,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 
 	suite.ExpectedRpcResults = map[string]string{
 		"/rpc?v=5&type=info&arg=attest":                        `{"resultcount":1,"results":[{"CheckDepends":["acyclovir","severals"],"Conflicts":["georginas","craw","lift"],"Description":"This is a desciptive text for package attest","FirstSubmitted":1644749267,"ID":25746,"Keywords":[],"LastModified":1644749267,"License":[],"Maintainer":"violate","MakeDepends":["answerable","ingrained","circumscribed","crust","landsats","emptier"],"Name":"attest","NumVotes":42,"OptDepends":["lowermost: for unanswered","racquetballs: for ornaments","slit: for dichotomy"],"OutOfDate":null,"PackageBase":"attest","PackageBaseID":25746,"Popularity":0,"Provides":["superber","acupuncture","destination","rota","shoeshine"],"Replaces":["brutishness","messaged","abut"],"URL":null,"URLPath":"/cgit/aur.git/snapshot/attest.tar.gz","Version":"2.11.73-4"}],"type":"multiinfo","version":5}`,
+		"/rpc/v5/info/attest":                                  `{"resultcount":1,"results":[{"CheckDepends":["acyclovir","severals"],"Conflicts":["georginas","craw","lift"],"Description":"This is a desciptive text for package attest","FirstSubmitted":1644749267,"ID":25746,"Keywords":[],"LastModified":1644749267,"License":[],"Maintainer":"violate","MakeDepends":["answerable","ingrained","circumscribed","crust","landsats","emptier"],"Name":"attest","NumVotes":42,"OptDepends":["lowermost: for unanswered","racquetballs: for ornaments","slit: for dichotomy"],"OutOfDate":null,"PackageBase":"attest","PackageBaseID":25746,"Popularity":0,"Provides":["superber","acupuncture","destination","rota","shoeshine"],"Replaces":["brutishness","messaged","abut"],"URL":null,"URLPath":"/cgit/aur.git/snapshot/attest.tar.gz","Version":"2.11.73-4"}],"type":"multiinfo","version":5}`,
 		"/rpc?v=5&type=multiinfo&arg=attest":                   `{"resultcount":1,"results":[{"CheckDepends":["acyclovir","severals"],"Conflicts":["georginas","craw","lift"],"Description":"This is a desciptive text for package attest","FirstSubmitted":1644749267,"ID":25746,"Keywords":[],"LastModified":1644749267,"License":[],"Maintainer":"violate","MakeDepends":["answerable","ingrained","circumscribed","crust","landsats","emptier"],"Name":"attest","NumVotes":42,"OptDepends":["lowermost: for unanswered","racquetballs: for ornaments","slit: for dichotomy"],"OutOfDate":null,"PackageBase":"attest","PackageBaseID":25746,"Popularity":0,"Provides":["superber","acupuncture","destination","rota","shoeshine"],"Replaces":["brutishness","messaged","abut"],"URL":null,"URLPath":"/cgit/aur.git/snapshot/attest.tar.gz","Version":"2.11.73-4"}],"type":"multiinfo","version":5}`,
 		"/rpc?v=5&type=info&arg=doesnotexist":                  `{"resultcount":0,"results":[],"type":"multiinfo","version":5}`,
 		"/rpc?v=5&type=info&arg=x":                             `{"resultcount":0,"results":[],"type":"multiinfo","version":5}`,
@@ -56,6 +57,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/rpc?v=5&type=suggest-pkgbase&arg=at":                 `["attest","attestation","attestations","attested","attesting","attests","attic","atticas","attics","attila","attire","attired","attires","attitude","attitudes","attitudinal","attitudinize","attitudinized","attitudinizing","attlee","attlees","attn","attorney","attorneys","attract","attractable","attractant","attractants","attracted","attracting","attraction","attractions","attractively","attractiveness","attractivenesss","attracts","attribute","attributed","attributes","attributions","attributive","attributives","attrition","attritions","attucks","attuckss","attunes","attuning","atty","atv","atwitter","atwoods","atypical"]`,
 		"/rpc?v=5&type=suggest-pkgbase&arg=test":               `[]`,
 		"/rpc?v=5&type=search&by=depends&arg=chrystals":        `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package attics","FirstSubmitted":1644749267,"ID":6877,"LastModified":1644749267,"Maintainer":"supergrasses","Name":"attics","NumVotes":42,"OutOfDate":null,"PackageBase":"attics","PackageBaseID":6877,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attics.tar.gz","Version":"8.5-10"}],"type":"search","version":5}`,
+		"/rpc/v5/search/chrystals?by=depends":                  `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package attics","FirstSubmitted":1644749267,"ID":6877,"LastModified":1644749267,"Maintainer":"supergrasses","Name":"attics","NumVotes":42,"OutOfDate":null,"PackageBase":"attics","PackageBaseID":6877,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attics.tar.gz","Version":"8.5-10"}],"type":"search","version":5}`,
 		"/rpc?v=5&type=search&by=depends&arg=x":                `{"error":"Query arg too small.","resultcount":0,"results":[],"type":"error","version":5}`,
 		"/rpc?v=5&type=search&by=optdepends&arg=bhopal":        `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package attired","FirstSubmitted":1644749267,"ID":28970,"LastModified":1644749267,"Maintainer":"backtalks","Name":"attired","NumVotes":51,"OutOfDate":null,"PackageBase":"attired","PackageBaseID":28970,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attired.tar.gz","Version":"9.2-4"}],"type":"search","version":5}`,
 		"/rpc?v=5&type=search&by=optdepends&arg=x":             `{"error":"Query arg too small.","resultcount":0,"results":[],"type":"error","version":5}`,
@@ -63,6 +65,12 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/rpc?v=5&type=search&by=makedepends&arg=x":            `{"error":"Query arg too small.","resultcount":0,"results":[],"type":"error","version":5}`,
 		"/rpc?v=5&type=search&by=checkdepends&arg=amphibian":   `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package attire","FirstSubmitted":1644749268,"ID":70252,"LastModified":1644749268,"Maintainer":"punish","Name":"attire","NumVotes":51,"OutOfDate":null,"PackageBase":"attire","PackageBaseID":70252,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attire.tar.gz","Version":"0.14.38-2"}],"type":"search","version":5}`,
 		"/rpc?v=5&type=search&by=checkdepends&arg=x":           `{"error":"Query arg too small.","resultcount":0,"results":[],"type":"error","version":5}`,
+		"/rpc/?v=5&type=search&by=provides&arg=scrumpy":        `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package backspacing","FirstSubmitted":1644749268,"ID":59993,"LastModified":1644749268,"Maintainer":"starlings","Name":"backspacing","NumVotes":50,"OutOfDate":null,"PackageBase":"backspacing","PackageBaseID":59993,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/backspacing.tar.gz","Version":"7.4.48-8"}],"type":"search","version":5}`,
+		"/rpc/?v=5&type=search&by=provides&arg=awfulness":      `{"resultcount":2,"results":[{"Description":"This is a desciptive text for package backyard","FirstSubmitted":1644749267,"ID":17402,"LastModified":1644749267,"Maintainer":"comers","Name":"backyard","NumVotes":43,"OutOfDate":null,"PackageBase":"backyard","PackageBaseID":17402,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/backyard.tar.gz","Version":"4.18-3"},{"Description":"This is a desciptive text for package awfulness","FirstSubmitted":1644749267,"ID":25750,"LastModified":1644749267,"Maintainer":"fatalists","Name":"awfulness","NumVotes":50,"OutOfDate":null,"PackageBase":"awfulness","PackageBaseID":25750,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/awfulness.tar.gz","Version":"3.7-5"}],"type":"search","version":5}`,
+		"/rpc/?v=5&type=search&by=conflicts&arg=hope":          `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package backyard","FirstSubmitted":1644749267,"ID":17402,"LastModified":1644749267,"Maintainer":"comers","Name":"backyard","NumVotes":43,"OutOfDate":null,"PackageBase":"backyard","PackageBaseID":17402,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/backyard.tar.gz","Version":"4.18-3"}],"type":"search","version":5}`,
+		"/rpc/?v=5&type=search&by=replaces&arg=spangled":       `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package backspace","FirstSubmitted":1644749268,"ID":51569,"LastModified":1644749268,"Maintainer":"tariff","Name":"backspace","NumVotes":52,"OutOfDate":null,"PackageBase":"backspace","PackageBaseID":51569,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/backspace.tar.gz","Version":"0.2.60-5"}],"type":"search","version":5}`,
+		"/rpc/?v=5&type=search&by=keywords&arg=nonsense":       `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package backwoodsmans","FirstSubmitted":1644749267,"ID":6308,"LastModified":1644749267,"Maintainer":"sss","Name":"backwoodsmans","NumVotes":46,"OutOfDate":null,"PackageBase":"backwoodsmans","PackageBaseID":6308,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/backwoodsmans.tar.gz","Version":"9.8.61-4"}],"type":"search","version":5}`,
+		"/rpc/?v=5&type=search&by=groups&arg=nothing":          `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package backwoodsmans","FirstSubmitted":1644749267,"ID":6308,"LastModified":1644749267,"Maintainer":"sss","Name":"backwoodsmans","NumVotes":46,"OutOfDate":null,"PackageBase":"backwoodsmans","PackageBaseID":6308,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/backwoodsmans.tar.gz","Version":"9.8.61-4"}],"type":"search","version":5}`,
 		"/rpc?v=5&type=search&by=name&arg=attest":              `{"resultcount":6,"results":[{"Description":"This is a desciptive text for package attest","FirstSubmitted":1644749267,"ID":25746,"LastModified":1644749267,"Maintainer":"violate","Name":"attest","NumVotes":42,"OutOfDate":null,"PackageBase":"attest","PackageBaseID":25746,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attest.tar.gz","Version":"2.11.73-4"},{"Description":"This is a desciptive text for package attestation","FirstSubmitted":1644749269,"ID":75661,"LastModified":1644749269,"Maintainer":null,"Name":"attestation","NumVotes":39,"OutOfDate":null,"PackageBase":"attestation","PackageBaseID":75661,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attestation.tar.gz","Version":"4.18.64-2"},{"Description":"This is a desciptive text for package attestations","FirstSubmitted":1644749269,"ID":74902,"LastModified":1644749269,"Maintainer":"gilchrists","Name":"attestations","NumVotes":44,"OutOfDate":null,"PackageBase":"attestations","PackageBaseID":74902,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attestations.tar.gz","Version":"4.9-9"},{"Description":"This is a desciptive text for package attested","FirstSubmitted":1644749268,"ID":71241,"LastModified":1644749268,"Maintainer":null,"Name":"attested","NumVotes":45,"OutOfDate":null,"PackageBase":"attested","PackageBaseID":71241,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attested.tar.gz","Version":"0.2.33-2"},{"Description":"This is a desciptive text for package attesting","FirstSubmitted":1644749268,"ID":67658,"LastModified":1644749268,"Maintainer":"amorphousness","Name":"attesting","NumVotes":51,"OutOfDate":null,"PackageBase":"attesting","PackageBaseID":67658,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attesting.tar.gz","Version":"1.14.65-10"},{"Description":"This is a desciptive text for package attests","FirstSubmitted":1644749268,"ID":42783,"LastModified":1644749268,"Maintainer":"injudicious","Name":"attests","NumVotes":48,"OutOfDate":null,"PackageBase":"attests","PackageBaseID":42783,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attests.tar.gz","Version":"8.13.74-4"}],"type":"search","version":5}`,
 		"/rpc?v=5&type=search&by=name&arg=x":                   `{"error":"Query arg too small.","resultcount":0,"results":[],"type":"error","version":5}`,
 		"/rpc?v=5&type=search&by=maintainer&arg=mistrustful":   `{"resultcount":1,"results":[{"Description":"This is a desciptive text for package attitudinize","FirstSubmitted":1644749268,"ID":64246,"LastModified":1644749268,"Maintainer":"mistrustful","Name":"attitudinize","NumVotes":42,"OutOfDate":null,"PackageBase":"attitudinize","PackageBaseID":64246,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attitudinize.tar.gz","Version":"7.17.87-9"}],"type":"search","version":5}`,
@@ -112,6 +120,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 func (suite *RpcTestSuite) SetupTest() {
 	// reset settings
 	suite.srv.settings = conf
+	suite.srv.reloadData()
 }
 
 // cleanup
@@ -152,18 +161,22 @@ func (suite *RpcTestSuite) TestRpcHandlers() {
 			req, err := http.NewRequest("GET", k, nil)
 			suite.Nil(err, "Could not create GET request")
 
-			http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
+			suite.srv.router.ServeHTTP(rr, req)
 			suite.Equal(v, rr.Body.String(), "Input: "+k)
 		}
 
 		// post requests
 		for k, v := range suite.ExpectedRpcResults {
 			rr := httptest.NewRecorder()
-			req, err := http.NewRequest("POST", "/rpc", strings.NewReader(strings.Split(k, "?")[1]))
+			reader := &strings.Reader{}
+			if len(strings.Split(k, "?")) > 1 {
+				reader = strings.NewReader(strings.Split(k, "?")[1])
+			}
+			req, err := http.NewRequest("POST", strings.Split(k, "?")[0], reader)
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 			suite.Nil(err, "Could not create POST request")
 
-			http.HandlerFunc(suite.srv.rpcHandler).ServeHTTP(rr, req)
+			suite.srv.router.ServeHTTP(rr, req)
 			suite.Equal(v, rr.Body.String(), "Input: "+k)
 		}
 	}
@@ -266,6 +279,16 @@ func (suite *RpcTestSuite) TestListen() {
 func (suite *RpcTestSuite) TestBrokenReload() {
 	suite.srv.settings.AurFileLocation = "x"
 	suite.NotNil(suite.srv.reloadData(), "Should return an error")
+}
+
+// test stats
+func (suite *RpcTestSuite) TestStats() {
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/rpc/stats", nil)
+	suite.Nil(err, "Could not create GET request")
+
+	suite.srv.router.ServeHTTP(rr, req)
+	suite.Equal(200, rr.Result().StatusCode)
 }
 
 // run our tests

@@ -6,11 +6,12 @@ import (
 
 // MemoryDB is a data structe which holds our package data
 type MemoryDB struct {
-	Packages            map[string]PackageInfo
+	PackageMap          map[string]PackageInfo
 	PackageNames        []string
 	PackageBaseNames    []string
-	PackageInfos        []PackageInfo
+	PackageSlice        []PackageInfo
 	PackageDescriptions []PackageDescription
+	References          map[string][]*PackageInfo
 }
 
 // PackageInfo is a data structure holding data for a single package

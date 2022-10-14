@@ -19,4 +19,8 @@ func TestLoadFromFile(t *testing.T) {
 	s, err = LoadFromFile("../../test_data/doesnotexist")
 	assert.NotNil(t, err)
 	assert.Nil(t, s)
+
+	s, err = LoadFromFile("../../test_data/test_errors.conf")
+	assert.NotNil(t, err)
+	assert.Nil(t, s)
 }

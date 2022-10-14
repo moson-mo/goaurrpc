@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
 	gmux "github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
@@ -34,6 +35,7 @@ type server struct {
 	verbose     bool
 	ver         string
 	lastRefresh time.Time
+	router      *mux.Router
 }
 
 // New creates a new server and immediately loads package data into memory
@@ -63,11 +65,12 @@ func New(settings config.Settings, verbose bool, version string) (*server, error
 
 	// load data
 	s.LogVerbose("Loading package data...")
+	start := time.Now()
 	err := s.reloadData()
 	if err != nil {
 		return nil, err
 	}
-	s.LogVerbose("Loaded package data.")
+	s.LogVerbose("Loaded package data in", time.Since(start).Milliseconds(), "ms.")
 	s.Log("Server started. Ready for client connections...")
 	return &s, nil
 }
@@ -80,17 +83,20 @@ func (s *server) Listen() error {
 	s.startJobs(shutdown, &wg)
 
 	// routes
-	mux := gmux.NewRouter()
-	mux.HandleFunc("/rpc", s.rpcHandler)
-	mux.HandleFunc("/rpc/", s.rpcHandler)
-	mux.HandleFunc("/rpc/info", s.rpcInfoHandler)
+	s.router = gmux.NewRouter()
 
-	mux.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
-	mux.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
+	// v5
+	s.router.HandleFunc("/rpc", s.rpcHandler)
+	s.router.HandleFunc("/rpc/", s.rpcHandler)
+	s.router.HandleFunc("/rpc/stats", s.rpcStatsHandler)
+
+	// v5 with url paths
+	s.router.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
+	s.router.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
 
 	srv := http.Server{
 		Addr:    ":" + strconv.Itoa(s.settings.Port),
-		Handler: mux,
+		Handler: s.router,
 	}
 
 	// shut down if we get the interrupt signal
@@ -121,28 +127,28 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	s.LogVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
 	// check if got a GET or POST request
-	var qstr url.Values
+	var values url.Values
 	if r.Method == "GET" {
-		qstr = r.URL.Query()
+		values = r.URL.Query()
 	} else {
 		r.ParseForm()
-		qstr = r.PostForm
+		values = r.PostForm
 	}
 
 	// override query string if we have path variables
 	vars := gmux.Vars(r)
 	if len(vars) > 0 {
-		qstr.Set("v", vars["version"])
-		qstr.Set("type", vars["type"])
+		values.Set("v", vars["version"])
+		values.Set("type", vars["type"])
 		if vars["name"] != "" {
-			qstr.Set("arg", vars["name"])
+			values.Set("arg", vars["name"])
 		}
 	}
 
-	t := qstr.Get("type")
-	v := qstr.Get("v")
+	t := values.Get("type")
+	v := values.Get("v")
 	version, _ := strconv.Atoi(v)
-	c := qstr.Get("callback")
+	c := values.Get("callback")
 
 	// rate limit check
 	if s.isRateLimited(ip) {
@@ -152,14 +158,14 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// if we don't get any query parameters, return documentation
-	if len(qstr) == 0 {
+	if len(values) == 0 {
 		w.Header().Add("Content-Type", "text/html; charset=UTF-8")
 		fmt.Fprintln(w, doc)
 		return
 	}
 
 	// validate query parameters
-	err := validateQueryString(qstr)
+	err := validateQueryString(values)
 	if err != nil {
 		if errors.Is(err, ErrCallBack) {
 			writeError(200, err.Error(), version, "", w)
@@ -172,7 +178,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	// handle suggest calls
 	if t == "suggest" || t == "suggest-pkgbase" {
 		s.mut.RLock()
-		b, err := json.Marshal(s.rpcSuggest(qstr, (t == "suggest-pkgbase")))
+		b, err := json.Marshal(s.rpcSuggest(values, (t == "suggest-pkgbase")))
 		s.mut.RUnlock()
 		if err != nil {
 			w.WriteHeader(500)
@@ -186,33 +192,23 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// handle info / search calls
 	var result RpcResult
-	addCache := false
 	s.mut.RLock()
 	switch t {
 	case "info", "multiinfo":
-		result = s.rpcInfo(qstr)
+		result = s.rpcInfo(values)
 	case "search", "msearch":
-		result = s.rpcSearch(qstr)
-		addCache = true
+		result = s.rpcSearch(values)
 	default:
 		result = RpcResult{}
 	}
 	s.mut.RUnlock()
 
 	// don't return data if we exceed max number of results
-	result.Resultcount = len(result.Results)
 	if result.Resultcount > s.settings.MaxResults {
 		result.Error = "Too many package results."
 		result.Resultcount = 0
 		result.Results = nil
 		result.Type = "error"
-	}
-
-	// add to cache
-	if s.settings.EnableSearchCache && addCache {
-		s.mutCache.Lock()
-		s.searchCache[qstr.Encode()] = CacheEntry{Result: result, TimeAdded: time.Now()}
-		s.mutCache.Unlock()
 	}
 
 	// set version number

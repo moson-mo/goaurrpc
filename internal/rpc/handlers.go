@@ -2,8 +2,8 @@ package rpc
 
 import (
 	"net/url"
-	"sort"
 	"strings"
+	"time"
 
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 )
@@ -13,48 +13,13 @@ func (s *server) rpcInfo(values url.Values) RpcResult {
 	rr := RpcResult{
 		Type: "multiinfo",
 	}
+
 	packages := getArgumentList(values)
 
 	for _, p := range packages {
-		if dbp, ok := s.memDB.Packages[p]; ok {
-			ir := InfoRecord{
-				ID:             dbp.ID,
-				Name:           dbp.Name,
-				PackageBaseID:  dbp.PackageBaseID,
-				PackageBase:    dbp.PackageBase,
-				Version:        dbp.Version,
-				Description:    dbp.Description,
-				URL:            dbp.URL,
-				NumVotes:       dbp.NumVotes,
-				Popularity:     dbp.Popularity,
-				OutOfDate:      dbp.OutOfDate,
-				Maintainer:     dbp.Maintainer,
-				FirstSubmitted: dbp.FirstSubmitted,
-				LastModified:   dbp.LastModified,
-				URLPath:        dbp.URLPath,
-				MakeDepends:    dbp.MakeDepends,
-				License:        dbp.License,
-				Depends:        dbp.Depends,
-				Conflicts:      dbp.Conflicts,
-				Provides:       dbp.Provides,
-				Keywords:       dbp.Keywords,
-				OptDepends:     dbp.OptDepends,
-				CheckDepends:   dbp.CheckDepends,
-				Replaces:       dbp.Replaces,
-				Groups:         dbp.Groups,
-			}
-
-			/*
-				for some reason Keywords and License should be returned
-				as empty JSON arrays rather than being omitted
-			*/
-			if ir.Keywords == nil {
-				ir.Keywords = []string{}
-			}
-			if ir.License == nil {
-				ir.License = []string{}
-			}
-			rr.Results = append(rr.Results, ir)
+		if dbp, ok := s.memDB.PackageMap[p]; ok {
+			rr.Results = append(rr.Results, convDbPkgToInfoRecord(&dbp))
+			rr.Resultcount++
 		}
 	}
 	return rr
@@ -66,115 +31,62 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		Type: values.Get("type"),
 	}
 
-	// search cache
-	key := values.Encode()
-	if s.settings.EnableSearchCache && len(key) < 1024 {
-		s.mutCache.RLock()
-		res, found := s.searchCache[key]
-		s.mutCache.RUnlock()
-		if found {
-			return res.Result
-		}
-	}
-
 	by := getBy(values)
-	found := []db.PackageInfo{}
-	search := getArgument(values)
+	foundAll := map[string][]db.PackageInfo{}
+	search := getArgumentList(values)
+	isSearchType := (rr.Type == "search" || rr.Type == "msearch")
 
-	// perform search according to the "by" parameter
-	switch by {
-	case "name":
-		for _, name := range s.memDB.PackageNames {
-			if strings.Contains(name, search) {
-				found = append(found, s.memDB.Packages[name])
+	// maintainer search
+	if len(search) == 0 && by == "maintainer" {
+		search = append(search, "")
+	}
+
+	for _, arg := range search {
+		cacheKey := by + "-" + arg
+
+		// check in cache
+		if s.settings.EnableSearchCache && len(arg) < 1024 {
+			s.mutCache.RLock()
+			res, f := s.searchCache[cacheKey]
+			s.mutCache.RUnlock()
+			if f {
+				foundAll[arg] = res.Entry
+				rr.Resultcount += res.ResultCount
+				if (rr.Resultcount) > s.settings.MaxResults {
+					return rr
+				}
+				continue
 			}
 		}
-	case "maintainer":
-		for _, pkg := range s.memDB.PackageInfos {
-			if pkg.Maintainer.ValueOrZero() == search {
-				found = append(found, pkg)
-			}
+
+		// search for packages
+		found := s.search(arg, by)
+		lenFound := len(found)
+		rr.Resultcount += lenFound
+
+		if lenFound < s.settings.MaxResults {
+			foundAll[arg] = found
+			s.addToCache(found, cacheKey, lenFound)
+		} else {
+			s.addToCache(nil, cacheKey, lenFound)
 		}
-	case "depends":
-		for _, pkg := range s.memDB.PackageInfos {
-			if pkgBeginsWith(pkg.Depends, search) {
-				found = append(found, pkg)
-			}
+		if (rr.Resultcount) > s.settings.MaxResults {
+			return rr
 		}
-	case "makedepends":
-		for _, pkg := range s.memDB.PackageInfos {
-			if pkgBeginsWith(pkg.MakeDepends, search) {
-				found = append(found, pkg)
-			}
-		}
-	case "optdepends":
-		for _, pkg := range s.memDB.PackageInfos {
-			if pkgBeginsWith(pkg.OptDepends, search) {
-				found = append(found, pkg)
-			}
-		}
-	case "checkdepends":
-		for _, pkg := range s.memDB.PackageInfos {
-			if pkgBeginsWith(pkg.CheckDepends, search) {
-				found = append(found, pkg)
-			}
-		}
-	case "provides":
-		for _, pkg := range s.memDB.PackageInfos {
-			if pkgBeginsWith(pkg.Provides, search) && pkg.Name != search {
-				found = append(found, pkg)
-			}
-		}
-		if pkg, f := s.memDB.Packages[search]; f {
-			found = append(found, pkg)
-		}
-	case "conflicts":
-		for _, pkg := range s.memDB.PackageInfos {
-			if inSlice(pkg.Conflicts, search) {
-				found = append(found, pkg)
-			}
-		}
-	case "replaces":
-		for _, pkg := range s.memDB.PackageInfos {
-			if inSlice(pkg.Replaces, search) {
-				found = append(found, pkg)
-			}
-		}
-	case "keywords":
-		for _, pkg := range s.memDB.PackageInfos {
-			if inSlice(pkg.Keywords, search) {
-				found = append(found, pkg)
-			}
-		}
-	default:
-		for _, pkg := range s.memDB.PackageDescriptions {
-			if strings.Contains(pkg.Name, search) || strings.Contains(pkg.Description.String, search) {
-				found = append(found, s.memDB.Packages[pkg.Name])
+
+	}
+
+	// Convert to Search- or InfoResult based on version and type
+	for _, arg := range search {
+		for _, pkg := range foundAll[arg] {
+			if isSearchType {
+				rr.Results = append(rr.Results, convDbPkgToSearchRecord(&pkg))
+			} else {
+				rr.Results = append(rr.Results, convDbPkgToInfoRecord(&pkg))
 			}
 		}
 	}
-	sort.Slice(found, func(i, j int) bool {
-		return found[i].Name < found[j].Name
-	})
-	for _, pkg := range found {
-		sr := SearchRecord{
-			Description:    pkg.Description,
-			FirstSubmitted: pkg.FirstSubmitted,
-			ID:             pkg.ID,
-			LastModified:   pkg.LastModified,
-			Maintainer:     pkg.Maintainer,
-			Name:           pkg.Name,
-			NumVotes:       pkg.NumVotes,
-			OutOfDate:      pkg.OutOfDate,
-			PackageBase:    pkg.PackageBase,
-			PackageBaseID:  pkg.PackageBaseID,
-			Popularity:     pkg.Popularity,
-			URL:            pkg.URL,
-			URLPath:        pkg.URLPath,
-			Version:        pkg.Version,
-		}
-		rr.Results = append(rr.Results, sr)
-	}
+
 	return rr
 }
 
@@ -212,4 +124,14 @@ func (s *server) rpcSuggest(values url.Values, pkgBase bool) []string {
 		}
 	}
 	return found
+}
+
+// add search results to cache. Don't store if exceeding max limit
+func (s *server) addToCache(packages []db.PackageInfo, key string, resultCount int) {
+	if !s.settings.EnableSearchCache {
+		return
+	}
+	s.mutCache.Lock()
+	defer s.mutCache.Unlock()
+	s.searchCache[key] = CacheEntry{Entry: packages, TimeAdded: time.Now(), ResultCount: resultCount}
 }

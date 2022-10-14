@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -153,27 +154,76 @@ func getRealIP(r *http.Request, trustedProxies []string) string {
 	return ip
 }
 
+// converts db.PackageInfo to rpc.InfoRecord
+// we could directly pass PackageInfo to the client as well
+// but we want to keep things flexible in case of changes
+func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
+	ir := InfoRecord{
+		ID:             dbp.ID,
+		Name:           dbp.Name,
+		PackageBaseID:  dbp.PackageBaseID,
+		PackageBase:    dbp.PackageBase,
+		Version:        dbp.Version,
+		Description:    dbp.Description,
+		URL:            dbp.URL,
+		NumVotes:       dbp.NumVotes,
+		Popularity:     dbp.Popularity,
+		OutOfDate:      dbp.OutOfDate,
+		Maintainer:     dbp.Maintainer,
+		FirstSubmitted: dbp.FirstSubmitted,
+		LastModified:   dbp.LastModified,
+		URLPath:        dbp.URLPath,
+		MakeDepends:    dbp.MakeDepends,
+		License:        dbp.License,
+		Depends:        dbp.Depends,
+		Conflicts:      dbp.Conflicts,
+		Provides:       dbp.Provides,
+		Keywords:       dbp.Keywords,
+		OptDepends:     dbp.OptDepends,
+		CheckDepends:   dbp.CheckDepends,
+		Replaces:       dbp.Replaces,
+		Groups:         dbp.Groups,
+	}
+	/*
+		for some reason Keywords and License should be returned
+		as empty JSON arrays rather than being omitted
+	*/
+	if ir.Keywords == nil {
+		ir.Keywords = []string{}
+	}
+	if ir.License == nil {
+		ir.License = []string{}
+	}
+
+	return ir
+}
+
+// converts db.PackageInfo to rpc.SearchRecord
+func convDbPkgToSearchRecord(dbp *db.PackageInfo) SearchRecord {
+	sr := SearchRecord{
+		ID:             dbp.ID,
+		PackageBaseID:  dbp.PackageBaseID,
+		Description:    dbp.Description,
+		FirstSubmitted: dbp.FirstSubmitted,
+		LastModified:   dbp.LastModified,
+		Maintainer:     dbp.Maintainer,
+		Name:           dbp.Name,
+		NumVotes:       dbp.NumVotes,
+		OutOfDate:      dbp.OutOfDate,
+		PackageBase:    dbp.PackageBase,
+		Popularity:     dbp.Popularity,
+		URL:            dbp.URL,
+		URLPath:        dbp.URLPath,
+		Version:        dbp.Version,
+	}
+
+	return sr
+}
+
 func inSlice(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
 			return true
-		}
-	}
-	return false
-}
-
-func pkgBeginsWith(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-		if strings.HasPrefix(a, e) {
-			t := a[len(e) : len(e)+1]
-			for _, c := range []string{"<", ">", "=", ":"} {
-				if c == t {
-					return true
-				}
-			}
 		}
 	}
 	return false

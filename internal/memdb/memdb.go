@@ -55,30 +55,93 @@ func LoadDbFromUrl(url string, lastmod string) (*MemoryDB, string, error) {
 // constructs MemoryDB struct
 func bytesToMemoryDB(b []byte) (*MemoryDB, error) {
 	db := MemoryDB{}
-	err := json.Unmarshal(b, &db.PackageInfos)
+	err := json.Unmarshal(b, &db.PackageSlice)
 	if err != nil {
 		return nil, err
 	}
 
-	n := len(db.PackageInfos)
+	db.fillHelperVars()
 
-	db.Packages = make(map[string]PackageInfo, n)
+	return &db, nil
+}
+
+// fills some slices we need for search lookups.
+func (db *MemoryDB) fillHelperVars() {
+	n := len(db.PackageSlice)
+
+	db.PackageMap = make(map[string]PackageInfo, n)
 	db.PackageNames = make([]string, 0, n)
 	db.PackageDescriptions = make([]PackageDescription, 0, n)
-	baseNames := make([]string, 0, n)
+	db.References = map[string][]*PackageInfo{}
+	baseNames := []string{}
 
-	for _, pkg := range db.PackageInfos {
-		db.Packages[pkg.Name] = pkg
+	for i, pkg := range db.PackageSlice {
+		db.PackageMap[pkg.Name] = pkg
 		db.PackageNames = append(db.PackageNames, pkg.Name)
 		baseNames = append(baseNames, pkg.PackageBase)
 		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: pkg.Description})
+
+		// depends
+		for _, ref := range pkg.Depends {
+			sref := "dep-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
+		// makedepends
+		for _, ref := range pkg.MakeDepends {
+			sref := "mdep-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
+		// optdepends
+		for _, ref := range pkg.OptDepends {
+			sref := "odep-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
+		// checkdepends
+		for _, ref := range pkg.CheckDepends {
+			sref := "cdep-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
+		// provides
+		for _, ref := range pkg.Provides {
+			sref := "pro-" + stripRef(ref)
+			if ref != pkg.Name {
+				db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			}
+		}
+		// conflicts
+		for _, ref := range pkg.Conflicts {
+			sref := "con-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
+		// replaces
+		for _, ref := range pkg.Replaces {
+			sref := "rep-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
+		// groups
+		for _, ref := range pkg.Groups {
+			sref := "grp-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
+		// keywords
+		for _, ref := range pkg.Keywords {
+			sref := "key-" + stripRef(ref)
+			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+		}
 	}
+
 	db.PackageBaseNames = distinctStringSlice(baseNames)
 
 	sort.Strings(db.PackageBaseNames)
 	sort.Strings(db.PackageNames)
+}
 
-	return &db, nil
+func stripRef(ref string) string {
+	ret := strings.Split(ref, ">")[0]
+	ret = strings.Split(ret, "<")[0]
+	ret = strings.Split(ret, ":")[0]
+	ret = strings.Split(ret, "=")[0]
+	return ret
 }
 
 func distinctStringSlice(s []string) []string {
