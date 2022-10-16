@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	gmux "github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"gopkg.in/guregu/null.v4"
@@ -83,7 +82,7 @@ func (s *server) Listen() error {
 	s.startJobs(shutdown, &wg)
 
 	// routes
-	s.router = gmux.NewRouter()
+	s.router = mux.NewRouter()
 
 	// v5
 	s.router.HandleFunc("/rpc", s.rpcHandler)
@@ -138,7 +137,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// override query string if we have path variables
-	vars := gmux.Vars(r)
+	vars := mux.Vars(r)
 	if len(vars) > 0 {
 		values.Set("v", vars["version"])
 		values.Set("type", vars["type"])
