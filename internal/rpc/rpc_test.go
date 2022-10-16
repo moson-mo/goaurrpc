@@ -34,6 +34,7 @@ var conf = config.Settings{
 	EnableSearchCache:     true,
 	RateLimitTimeWindow:   86400,
 	LogFile:               "log.tst",
+	EnableMetrics:         true,
 }
 
 // setup our test suite

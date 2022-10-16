@@ -1,5 +1,5 @@
-github.com/moson-mo/goaurrpc/internal/config/settings.go:31:	DefaultSettings		100.0%
-github.com/moson-mo/goaurrpc/internal/config/settings.go:51:	LoadFromFile		61.1%
+github.com/moson-mo/goaurrpc/internal/config/settings.go:32:	DefaultSettings		100.0%
+github.com/moson-mo/goaurrpc/internal/config/settings.go:53:	LoadFromFile		61.1%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:15:	LoadDbFromFile		94.1%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:43:	LoadDbFromUrl		85.7%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:56:	bytesToMemoryDB		100.0%
@@ -17,11 +17,11 @@ github.com/moson-mo/goaurrpc/internal/rpc/jobs.go:111:		cleanupSearchCache	100.0
 github.com/moson-mo/goaurrpc/internal/rpc/log.go:8:		Log			100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/log.go:13:		LogVerbose		100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/search.go:10:		search			100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/server.go:42:		New			88.9%
-github.com/moson-mo/goaurrpc/internal/rpc/server.go:79:		Listen			95.2%
-github.com/moson-mo/goaurrpc/internal/rpc/server.go:122:	Stop			100.0%
-github.com/moson-mo/goaurrpc/internal/rpc/server.go:127:	rpcHandler		93.0%
-github.com/moson-mo/goaurrpc/internal/rpc/server.go:224:	isRateLimited		92.3%
+github.com/moson-mo/goaurrpc/internal/rpc/server.go:43:		New			88.9%
+github.com/moson-mo/goaurrpc/internal/rpc/server.go:80:		Listen			96.0%
+github.com/moson-mo/goaurrpc/internal/rpc/server.go:129:	Stop			100.0%
+github.com/moson-mo/goaurrpc/internal/rpc/server.go:134:	rpcHandler		93.4%
+github.com/moson-mo/goaurrpc/internal/rpc/server.go:241:	isRateLimited		92.3%
 github.com/moson-mo/goaurrpc/internal/rpc/stats.go:19:		rpcStatsHandler		100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:30:		validateQueryString	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:65:		getArgumentList		100.0%
@@ -34,4 +34,4 @@ github.com/moson-mo/goaurrpc/internal/rpc/utils.go:138:		getRealIP		100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:160:		convDbPkgToInfoRecord	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:202:		convDbPkgToSearchRecord	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:223:		inSlice			100.0%
-total:								(statements)		94.8%
+total:								(statements)		94.9%

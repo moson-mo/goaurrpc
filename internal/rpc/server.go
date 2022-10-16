@@ -17,6 +17,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
+	"github.com/moson-mo/goaurrpc/internal/metrics"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -84,7 +86,6 @@ func (s *server) Listen() error {
 	// routes
 	s.router = mux.NewRouter()
 
-	// v5
 	s.router.HandleFunc("/rpc", s.rpcHandler)
 	s.router.HandleFunc("/rpc/", s.rpcHandler)
 	s.router.HandleFunc("/rpc.php", s.rpcHandler)  // should have been removed ?! but aurweb is answering
@@ -94,6 +95,13 @@ func (s *server) Listen() error {
 	// v5 with url paths
 	s.router.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
 	s.router.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
+
+	// metrics
+	if s.settings.EnableMetrics {
+		metrics.RegisterMetrics()
+		s.router.Use(metrics.PrometheusMiddleware)
+		s.router.Handle("/metrics", promhttp.Handler())
+	}
 
 	srv := http.Server{
 		Addr:    ":" + strconv.Itoa(s.settings.Port),
@@ -127,7 +135,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	ip := getRealIP(r, s.settings.TrustedReverseProxies)
 	s.LogVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
-	// check if got a GET or POST request
+	// check if we got a GET or POST request
 	var values url.Values
 	if r.Method == "GET" {
 		values = r.URL.Query()
@@ -147,12 +155,19 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	t := values.Get("type")
+	by := values.Get("by")
 	v := values.Get("v")
 	version, _ := strconv.Atoi(v)
 	c := values.Get("callback")
 
+	// update requests metric
+	metrics.Requests.WithLabelValues(r.URL.Path, r.Method, t, by).Inc()
+
 	// rate limit check
 	if s.isRateLimited(ip) {
+		// update rate limited metric
+		metrics.RateLimited.WithLabelValues().Inc()
+
 		s.LogVerbose("Client reached rate limit: ", ip)
 		writeError(429, "Rate limit reached", version, "", w)
 		return
@@ -168,6 +183,9 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	// validate query parameters
 	err := validateQueryString(values)
 	if err != nil {
+		// update request errors metric
+		metrics.RequestErrors.WithLabelValues(r.Method, err.Error())
+
 		if errors.Is(err, ErrCallBack) {
 			writeError(200, err.Error(), version, "", w)
 			return

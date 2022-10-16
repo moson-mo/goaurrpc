@@ -25,6 +25,7 @@ type Settings struct {
 	CacheCleanupInterval     int // in seconds
 	CacheExpirationTime      int // in seconds
 	LogFile                  string
+	EnableMetrics            bool
 }
 
 // DefaultSettings returns the default settings for our server
@@ -43,6 +44,7 @@ func DefaultSettings() *Settings {
 		CacheCleanupInterval:     60,
 		CacheExpirationTime:      180,
 		LogFile:                  "",
+		EnableMetrics:            true,
 	}
 	return &s
 }
