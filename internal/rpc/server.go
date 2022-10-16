@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"log"
 	"net/http"
 	"net/url"
@@ -18,6 +20,9 @@ import (
 	gmux "github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
+	_ "github.com/prometheus/client_golang/prometheus"
+	_ "github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -75,6 +80,24 @@ func New(settings config.Settings, verbose bool, version string) (*server, error
 	return &s, nil
 }
 
+var (
+	httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "goaurrpc_http_duration_seconds",
+		Help: "Duration of HTTP requests.",
+	}, []string{"path"})
+)
+
+// prometheusMiddleware implements mux.MiddlewareFunc.
+func prometheusMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		route := mux.CurrentRoute(r)
+		path, _ := route.GetPathTemplate()
+		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+		next.ServeHTTP(w, r)
+		timer.ObserveDuration()
+	})
+}
+
 // Listen creates a rest API endpoint and starts listening for requests
 func (s *server) Listen() error {
 	wg := sync.WaitGroup{}
@@ -95,6 +118,9 @@ func (s *server) Listen() error {
 	// v5 with url paths
 	s.router.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
 	s.router.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
+
+	s.router.Use(prometheusMiddleware)
+	s.router.Path("/rpc/metrics").Handler(promhttp.Handler())
 
 	srv := http.Server{
 		Addr:    ":" + strconv.Itoa(s.settings.Port),
