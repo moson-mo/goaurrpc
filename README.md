@@ -65,7 +65,7 @@ If this parameter is not passed, the default config will be used (sample.conf co
 | EnableSearchCache | Caches data for search queries that have been performed by clients |
 | CacheCleanupInterval | The interval (in seconds) for performing cleanup of search-cache entries |
 | CacheExpirationTime | The number of seconds an entry should stay in the search-cache |
-| EnableMetrics | Enables Prometheus metrics at /rpc-metrics |
+| EnableMetrics | Enables Prometheus metrics at /metrics |
 
 ### Public endpoint
 
