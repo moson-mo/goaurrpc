@@ -3,7 +3,7 @@ package memdb
 import (
 	"compress/gzip"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 	"sort"
 	"strings"
@@ -24,13 +24,13 @@ func LoadDbFromFile(path string) (*MemoryDB, error) {
 		if err != nil {
 			return nil, err
 		}
-		b, err = ioutil.ReadAll(r)
+		b, err = io.ReadAll(r)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		var err error
-		b, err = ioutil.ReadFile(path)
+		b, err = os.ReadFile(path)
 		if err != nil {
 			return nil, err
 		}

@@ -2,7 +2,7 @@ package aur
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -22,7 +22,7 @@ func DownloadPackageData(address string, lastmod string) ([]byte, string, error)
 		return nil, lastmod, errors.New("not modified")
 	}
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, "", err
 	}

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 )
 
 // Settings is a data structure holding our configuration data
@@ -49,7 +49,7 @@ func DefaultSettings() *Settings {
 
 // LoadFromFile load settings from a file
 func LoadFromFile(path string) (*Settings, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
