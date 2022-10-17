@@ -21,18 +21,18 @@ func (s *server) startJobs(shutdown chan struct{}, wg *sync.WaitGroup) {
 				s.LogVerbose("Stopping routine: Data refresh")
 				return
 			case <-time.After(time.Duration(s.settings.RefreshInterval) * time.Second):
-				s.LogVerbose("Reloading package data...")
+				s.Log("Reloading package data...")
 				start := time.Now()
 				err := s.reloadData()
 				if err != nil {
 					if err.Error() == "not modified" {
-						s.LogVerbose("Reload skipped. File has not been modified.")
+						s.Log("Reload skipped. File has not been modified.")
 					} else {
-						s.LogVerbose("Error reloading data: ", err)
+						s.Log("Error reloading data: ", err)
 					}
 				} else {
 					elapsed := time.Since(start)
-					s.LogVerbose("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")
+					s.Log("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")
 				}
 			}
 		}

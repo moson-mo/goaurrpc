@@ -3,9 +3,6 @@ package rpc
 import (
 	"net/url"
 	"strings"
-	"time"
-
-	db "github.com/moson-mo/goaurrpc/internal/memdb"
 )
 
 // construct result for "info" calls
@@ -31,60 +28,24 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		Type: values.Get("type"),
 	}
 
+	// get from search cache
+	key := values.Encode()
+	if s.settings.EnableSearchCache {
+		s.mutCache.RLock()
+		res, found := s.searchCache[key]
+		s.mutCache.RUnlock()
+		if found {
+			return res.Result
+		}
+	}
+
+	// search
 	by := getBy(values)
-	foundAll := map[string][]db.PackageInfo{}
-	search := getArgumentList(values)
-	isSearchType := (rr.Type == "search" || rr.Type == "msearch")
+	arg := getArgument(values)
+	found := s.search(arg, by)
 
-	// maintainer search
-	if len(search) == 0 && by == "maintainer" {
-		search = append(search, "")
-	}
-
-	for _, arg := range search {
-		cacheKey := by + "-" + arg
-
-		// check in cache
-		if s.settings.EnableSearchCache && len(arg) < 1024 {
-			s.mutCache.RLock()
-			res, f := s.searchCache[cacheKey]
-			s.mutCache.RUnlock()
-			if f {
-				foundAll[arg] = res.Entry
-				rr.Resultcount += res.ResultCount
-				if (rr.Resultcount) > s.settings.MaxResults {
-					return rr
-				}
-				continue
-			}
-		}
-
-		// search for packages
-		found := s.search(arg, by)
-		lenFound := len(found)
-		rr.Resultcount += lenFound
-
-		if lenFound < s.settings.MaxResults {
-			foundAll[arg] = found
-			s.addToCache(found, cacheKey, lenFound)
-		} else {
-			s.addToCache(nil, cacheKey, lenFound)
-		}
-		if (rr.Resultcount) > s.settings.MaxResults {
-			return rr
-		}
-
-	}
-
-	// Convert to Search- or InfoResult based on version and type
-	for _, arg := range search {
-		for _, pkg := range foundAll[arg] {
-			if isSearchType {
-				rr.Results = append(rr.Results, convDbPkgToSearchRecord(&pkg))
-			} else {
-				rr.Results = append(rr.Results, convDbPkgToInfoRecord(&pkg))
-			}
-		}
+	for _, pkg := range found {
+		rr.Results = append(rr.Results, convDbPkgToSearchRecord(&pkg))
 	}
 
 	return rr
@@ -124,14 +85,4 @@ func (s *server) rpcSuggest(values url.Values, pkgBase bool) []string {
 		}
 	}
 	return found
-}
-
-// add search results to cache. Don't store if exceeding max limit
-func (s *server) addToCache(packages []db.PackageInfo, key string, resultCount int) {
-	if !s.settings.EnableSearchCache {
-		return
-	}
-	s.mutCache.Lock()
-	defer s.mutCache.Unlock()
-	s.searchCache[key] = CacheEntry{Entry: packages, TimeAdded: time.Now(), ResultCount: resultCount}
 }

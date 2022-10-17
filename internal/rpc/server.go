@@ -66,13 +66,13 @@ func New(settings config.Settings, verbose bool, version string) (*server, error
 	s.settings = settings
 
 	// load data
-	s.LogVerbose("Loading package data...")
+	s.Log("Loading package data...")
 	start := time.Now()
 	err := s.reloadData()
 	if err != nil {
 		return nil, err
 	}
-	s.LogVerbose("Loaded package data in", time.Since(start).Milliseconds(), "ms.")
+	s.Log("Loaded package data in", time.Since(start).Milliseconds(), "ms.")
 	s.Log("Server started. Ready for client connections...")
 	return &s, nil
 }
@@ -136,6 +136,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	timer := prometheus.NewTimer(metrics.HttpDuration.WithLabelValues())
 	defer timer.ObserveDuration()
 
+	// get clients IP address
 	ip := getRealIP(r, s.settings.TrustedReverseProxies)
 	s.LogVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
@@ -224,12 +225,16 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	s.mut.RUnlock()
 
 	// don't return data if we exceed max number of results
+	result.Resultcount = len(result.Results)
 	if result.Resultcount > s.settings.MaxResults {
 		result.Error = "Too many package results."
 		result.Resultcount = 0
 		result.Results = nil
 		result.Type = "error"
 	}
+
+	// add to search cache
+	s.addToCache(result, values.Encode())
 
 	// set version number
 	result.Version = null.NewInt(int64(version), version != 0)
@@ -263,4 +268,14 @@ func (s *server) isRateLimited(ip string) bool {
 		}
 	}
 	return false
+}
+
+// add search results to cache.
+func (s *server) addToCache(result RpcResult, key string) {
+	if !s.settings.EnableSearchCache {
+		return
+	}
+	s.mutCache.Lock()
+	defer s.mutCache.Unlock()
+	s.searchCache[key] = CacheEntry{Result: result, TimeAdded: time.Now()}
 }

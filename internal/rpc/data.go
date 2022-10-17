@@ -3,7 +3,6 @@ package rpc
 import (
 	"time"
 
-	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -69,7 +68,6 @@ type RateLimit struct {
 }
 
 type CacheEntry struct {
-	Entry       []db.PackageInfo
-	TimeAdded   time.Time
-	ResultCount int
+	Result    RpcResult
+	TimeAdded time.Time
 }
