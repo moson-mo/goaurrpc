@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
+	"github.com/moson-mo/goaurrpc/internal/metrics"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -109,6 +110,10 @@ func writeError(code int, message string, version int, callback string, w http.R
 	b, _ := json.Marshal(e)
 
 	sendResult(code, callback, b, w)
+
+	// update request errors metric
+	metrics.RequestErrors.WithLabelValues(e.Error)
+
 }
 
 // generate JSON string from RpcResult and return to client
@@ -119,6 +124,9 @@ func writeResult(result *RpcResult, callback string, w http.ResponseWriter) {
 	}
 	b, _ := json.Marshal(result)
 	sendResult(200, callback, b, w)
+
+	// update request size metrics
+	metrics.ResponseSize.WithLabelValues(result.Type).Observe(float64(len(b)))
 }
 
 // sends data to client

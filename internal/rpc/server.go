@@ -18,6 +18,7 @@ import (
 	"github.com/moson-mo/goaurrpc/internal/config"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"github.com/moson-mo/goaurrpc/internal/metrics"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/guregu/null.v4"
 )
@@ -99,7 +100,6 @@ func (s *server) Listen() error {
 	// metrics
 	if s.settings.EnableMetrics {
 		metrics.RegisterMetrics()
-		s.router.Use(metrics.PrometheusMiddleware)
 		s.router.Handle("/metrics", promhttp.Handler())
 	}
 
@@ -132,6 +132,10 @@ func (s *server) Stop() {
 
 // handles client connections
 func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
+	// response time metrics
+	timer := prometheus.NewTimer(metrics.HttpDuration.WithLabelValues())
+	defer timer.ObserveDuration()
+
 	ip := getRealIP(r, s.settings.TrustedReverseProxies)
 	s.LogVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
@@ -161,7 +165,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	c := values.Get("callback")
 
 	// update requests metric
-	metrics.Requests.WithLabelValues(r.URL.Path, r.Method, t, by).Inc()
+	metrics.Requests.WithLabelValues(r.Method, t, by).Inc()
 
 	// rate limit check
 	if s.isRateLimited(ip) {
@@ -183,9 +187,6 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	// validate query parameters
 	err := validateQueryString(values)
 	if err != nil {
-		// update request errors metric
-		metrics.RequestErrors.WithLabelValues(r.Method, err.Error())
-
 		if errors.Is(err, ErrCallBack) {
 			writeError(200, err.Error(), version, "", w)
 			return

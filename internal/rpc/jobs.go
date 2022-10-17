@@ -5,6 +5,7 @@ import (
 	"time"
 
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
+	"github.com/moson-mo/goaurrpc/internal/metrics"
 )
 
 // start go-routines for periodic tasks
@@ -91,6 +92,7 @@ func (s *server) reloadData() error {
 	s.memDB = ptr
 	s.lastmod = lmod
 	s.lastRefresh = time.Now()
+	metrics.LastRefresh.SetToCurrentTime()
 	return nil
 }
 
