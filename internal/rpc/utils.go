@@ -112,7 +112,7 @@ func writeError(code int, message string, version int, callback string, w http.R
 	sendResult(code, callback, b, w)
 
 	// update request errors metric
-	metrics.RequestErrors.WithLabelValues(e.Error)
+	metrics.RequestErrors.WithLabelValues(e.Error).Inc()
 
 }
 
