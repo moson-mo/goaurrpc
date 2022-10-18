@@ -159,14 +159,15 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// get API parameters
 	t := values.Get("type")
 	by := values.Get("by")
+	if by == "" {
+		by = "name-desc"
+	}
 	v := values.Get("v")
 	version, _ := strconv.Atoi(v)
 	c := values.Get("callback")
-
-	// update requests metric
-	metrics.Requests.WithLabelValues(r.Method, t, by).Inc()
 
 	// rate limit check
 	if s.isRateLimited(ip) {
@@ -195,6 +196,9 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		writeError(200, err.Error(), version, c, w)
 		return
 	}
+
+	// update requests metric
+	metrics.Requests.WithLabelValues(r.Method, t, by).Inc()
 
 	// handle suggest calls
 	if t == "suggest" || t == "suggest-pkgbase" {
