@@ -12,7 +12,7 @@ var (
 			Name: "rpc_requests",
 			Help: "Number of /rpc requests per method, type and \"by\" parameter.",
 		},
-		[]string{"useragent", "method", "type", "by"},
+		[]string{"method", "type", "by"},
 	)
 	RequestErrors = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
