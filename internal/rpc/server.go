@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -164,9 +165,13 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	v := values.Get("v")
 	version, _ := strconv.Atoi(v)
 	c := values.Get("callback")
+	ua := strings.Split(r.UserAgent(), " ")[0]
+	if ua == "" {
+		ua = "unknown"
+	}
 
 	// update requests metric
-	metrics.Requests.WithLabelValues(r.Method, t, by).Inc()
+	metrics.Requests.WithLabelValues(ua, r.Method, t, by).Inc()
 
 	// rate limit check
 	if s.isRateLimited(ip) {

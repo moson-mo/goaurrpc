@@ -113,7 +113,6 @@ func writeError(code int, message string, version int, callback string, w http.R
 
 	// update request errors metric
 	metrics.RequestErrors.WithLabelValues(e.Error).Inc()
-
 }
 
 // generate JSON string from RpcResult and return to client
@@ -123,6 +122,7 @@ func writeResult(result *RpcResult, callback string, w http.ResponseWriter) {
 		result.Results = make([]interface{}, 0)
 	}
 	b, _ := json.Marshal(result)
+
 	sendResult(200, callback, b, w)
 
 	// update request size metrics
