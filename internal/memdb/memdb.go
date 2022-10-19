@@ -128,6 +128,9 @@ func (db *MemoryDB) fillHelperVars() {
 			sref := "key-" + stripRef(ref)
 			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
 		}
+		// maintainer
+		maintainer := "m-" + pkg.Maintainer.ValueOrZero()
+		db.References[maintainer] = append(db.References[maintainer], &db.PackageSlice[i])
 	}
 
 	db.PackageBaseNames = distinctStringSlice(baseNames)

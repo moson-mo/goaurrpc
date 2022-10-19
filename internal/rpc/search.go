@@ -21,9 +21,9 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 			}
 		}
 	case "maintainer":
-		for _, pkg := range s.memDB.PackageSlice {
-			if pkg.Maintainer.ValueOrZero() == arg {
-				found = append(found, pkg)
+		if pkgs, f := s.memDB.References["m-"+arg]; f {
+			for _, pkg := range pkgs {
+				found = append(found, *pkg)
 			}
 		}
 	case "depends":

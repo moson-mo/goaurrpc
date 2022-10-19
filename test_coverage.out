@@ -4,8 +4,8 @@ github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:15:	LoadDbFromFile		94.1%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:43:	LoadDbFromUrl		85.7%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:56:	bytesToMemoryDB		100.0%
 github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:69:	fillHelperVars		100.0%
-github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:139:	stripRef		100.0%
-github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:147:	distinctStringSlice	100.0%
+github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:142:	stripRef		100.0%
+github.com/moson-mo/goaurrpc/internal/memdb/memdb.go:150:	distinctStringSlice	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/handlers.go:9:	rpcInfo			100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/handlers.go:26:	rpcSearch		100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/handlers.go:55:	rpcSuggest		94.1%
@@ -34,4 +34,4 @@ github.com/moson-mo/goaurrpc/internal/rpc/utils.go:146:		getRealIP		100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:168:		convDbPkgToInfoRecord	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:210:		convDbPkgToSearchRecord	100.0%
 github.com/moson-mo/goaurrpc/internal/rpc/utils.go:231:		inSlice			100.0%
-total:								(statements)		95.0%
+total:								(statements)		95.1%
