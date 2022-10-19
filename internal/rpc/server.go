@@ -217,12 +217,14 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// handle info / search calls
 	var result RpcResult
+	addCache := false
 	s.mut.RLock()
 	switch t {
 	case "info", "multiinfo":
 		result = s.rpcInfo(values)
 	case "search", "msearch":
 		result = s.rpcSearch(values)
+		addCache = true
 	default:
 		result = RpcResult{}
 	}
@@ -238,7 +240,9 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// add to search cache
-	s.addToCache(result, values.Encode())
+	if addCache {
+		s.addToCache(result, values.Encode())
+	}
 
 	// set version number
 	result.Version = null.NewInt(int64(version), version != 0)
