@@ -23,7 +23,7 @@ func (s *server) rpcInfo(values url.Values) RpcResult {
 }
 
 // construct result for "search" calls
-func (s *server) rpcSearch(values url.Values) RpcResult {
+func (s *server) rpcSearch(values url.Values) (RpcResult, bool) {
 	rr := RpcResult{
 		Type: values.Get("type"),
 	}
@@ -35,20 +35,20 @@ func (s *server) rpcSearch(values url.Values) RpcResult {
 		res, found := s.searchCache[key]
 		s.mutCache.RUnlock()
 		if found {
-			return res.Result
+			return res.Result, false
 		}
 	}
 
 	// search
 	by := getBy(values)
 	arg := getArgument(values)
-	found := s.search(arg, by)
+	found, cache := s.search(arg, by)
 
 	for _, pkg := range found {
 		rr.Results = append(rr.Results, convDbPkgToSearchRecord(&pkg))
 	}
 
-	return rr
+	return rr, cache
 }
 
 // construct result for "suggest" calls

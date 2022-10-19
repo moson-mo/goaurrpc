@@ -7,12 +7,14 @@ import (
 )
 
 // searches and returns found packages from our DB
-func (s *server) search(arg, by string) []db.PackageInfo {
+func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 	found := []db.PackageInfo{}
+	cache := false
 
 	// perform search according to the "by" parameter
 	switch by {
 	case "name":
+		cache = true
 		for _, name := range s.memDB.PackageNames {
 			if strings.Contains(name, arg) {
 				found = append(found, s.memDB.PackageMap[name])
@@ -82,6 +84,7 @@ func (s *server) search(arg, by string) []db.PackageInfo {
 			}
 		}
 	default:
+		cache = true
 		for _, pkg := range s.memDB.PackageDescriptions {
 			if strings.Contains(pkg.Name, arg) || strings.Contains(pkg.Description.String, arg) {
 				found = append(found, s.memDB.PackageMap[pkg.Name])
@@ -89,5 +92,5 @@ func (s *server) search(arg, by string) []db.PackageInfo {
 		}
 	}
 
-	return found
+	return found, cache
 }
