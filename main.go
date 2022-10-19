@@ -9,7 +9,12 @@ import (
 	"github.com/moson-mo/goaurrpc/internal/rpc"
 )
 
-const version = "1.1.3"
+/*
+	version can be overriden during build:
+	go build -ldflags="-X 'main.version=v1.0.0'"
+*/
+
+var version = "1.1.3"
 
 func main() {
 	var settings *config.Settings
@@ -32,7 +37,7 @@ func main() {
 	}
 
 	// construct new server and start listening for requests
-	fmt.Printf("goaurrpc v%s is starting...\n\n", version)
+	fmt.Printf("goaurrpc %s is starting...\n\n", version)
 	s, err := rpc.New(*settings, *verbose, version)
 	if err != nil {
 		panic(err)
@@ -40,5 +45,5 @@ func main() {
 	if err = s.Listen(); err != http.ErrServerClosed {
 		fmt.Println(err)
 	}
-	fmt.Printf("goaurrpc v%s stopped.\n", version)
+	fmt.Printf("goaurrpc %s stopped.\n", version)
 }
