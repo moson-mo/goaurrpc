@@ -3,6 +3,8 @@ package rpc
 import (
 	"net/url"
 	"strings"
+
+	"github.com/moson-mo/goaurrpc/internal/metrics"
 )
 
 // construct result for "info" calls
@@ -35,6 +37,9 @@ func (s *server) rpcSearch(values url.Values) (RpcResult, bool) {
 		res, found := s.searchCache[key]
 		s.mutCache.RUnlock()
 		if found {
+			// update cache hits metric
+			metrics.CacheHits.Inc()
+
 			return res.Result, false
 		}
 	}

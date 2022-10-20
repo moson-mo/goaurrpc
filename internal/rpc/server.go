@@ -172,7 +172,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	// rate limit check
 	if s.isRateLimited(ip) {
 		// update rate limited metric
-		metrics.RateLimited.WithLabelValues().Inc()
+		metrics.RateLimited.Inc()
 
 		s.LogVerbose("Client reached rate limit: ", ip)
 		writeError(429, "Rate limit reached", version, "", w)

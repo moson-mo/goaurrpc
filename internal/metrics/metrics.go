@@ -21,12 +21,11 @@ var (
 		},
 		[]string{"error"},
 	)
-	RateLimited = prometheus.NewCounterVec(
+	RateLimited = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "rpc_requests_rate_limited",
 			Help: "Number of /rpc requests that ran into the rate-limit.",
 		},
-		[]string{},
 	)
 	HttpDuration = promauto.NewHistogramVec(
 		prometheus.HistogramOpts{
@@ -48,6 +47,12 @@ var (
 			Buckets: []float64{500, 1000, 5000, 10000, 50000, 100000, 1000000, 2000000},
 		},
 		[]string{"type"})
+	CacheHits = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "rpc_cache_hits",
+			Help: "Number of search requests that could be served by a cache entry.",
+		},
+	)
 )
 
 // RegisterMetrics registers the different metrics that we want to collect
@@ -58,4 +63,5 @@ func RegisterMetrics() {
 	prometheus.Register(HttpDuration)
 	prometheus.Register(LastRefresh)
 	prometheus.Register(ResponseSize)
+	prometheus.Register(CacheHits)
 }
