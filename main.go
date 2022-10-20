@@ -10,11 +10,11 @@ import (
 )
 
 /*
-	version can be overriden during build:
+	version can be overridden during build:
 	go build -ldflags="-X 'main.version=v1.0.0'"
 */
 
-var version = "1.1.6"
+var version = "1.1.7"
 
 func main() {
 	var settings *config.Settings
