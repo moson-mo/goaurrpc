@@ -74,12 +74,21 @@ func (db *MemoryDB) fillHelperVars() {
 	db.PackageDescriptions = make([]PackageDescription, 0, n)
 	db.References = map[string][]*PackageInfo{}
 	baseNames := []string{}
+	db.SuggestNames = map[byte][]string{}
+	db.SuggestBases = map[byte][]string{}
+
+	sort.Slice(db.PackageSlice, func(i, j int) bool {
+		return db.PackageSlice[i].Name < db.PackageSlice[j].Name
+	})
 
 	for i, pkg := range db.PackageSlice {
 		db.PackageMap[pkg.Name] = pkg
 		db.PackageNames = append(db.PackageNames, pkg.Name)
 		baseNames = append(baseNames, pkg.PackageBase)
 		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: pkg.Description})
+		if len(pkg.Name) > 0 {
+			db.SuggestNames[pkg.Name[0]] = append(db.SuggestNames[pkg.Name[0]], pkg.Name)
+		}
 
 		// depends
 		for _, ref := range pkg.Depends {
@@ -133,10 +142,11 @@ func (db *MemoryDB) fillHelperVars() {
 		db.References[maintainer] = append(db.References[maintainer], &db.PackageSlice[i])
 	}
 
-	db.PackageBaseNames = distinctStringSlice(baseNames)
-
-	sort.Strings(db.PackageBaseNames)
-	sort.Strings(db.PackageNames)
+	for _, base := range distinctStringSlice(baseNames) {
+		if len(base) > 0 {
+			db.SuggestBases[base[0]] = append(db.SuggestBases[base[0]], base)
+		}
+	}
 }
 
 func stripRef(ref string) string {

@@ -58,33 +58,28 @@ func (s *server) rpcSearch(values url.Values) (RpcResult, bool) {
 
 // construct result for "suggest" calls
 func (s *server) rpcSuggest(values url.Values, pkgBase bool) []string {
+	var searchBase []string
 	found := []string{}
 	search := getArgument(values)
+	if len(search) == 0 {
+		searchBase = s.memDB.PackageNames
+	} else {
+		bucket := search[0]
+
+		if pkgBase {
+			searchBase = s.memDB.SuggestBases[bucket]
+		} else {
+			searchBase = s.memDB.SuggestNames[bucket]
+		}
+	}
 
 	count := 0
-
-	var searchBase []string
-	if pkgBase {
-		searchBase = s.memDB.PackageBaseNames
-	} else {
-		searchBase = s.memDB.PackageNames
-	}
 
 	for _, p := range searchBase {
 		if strings.HasPrefix(p, search) {
 			found = append(found, p)
 			count++
-			if count == 100 {
-				break
-			}
-		}
-
-		/*
-			we can bail out if the first character is not matching anymore since our list is sorted
-			this can be optimized further but it's probably not even worth it
-		*/
-		if len(search) > 0 && len(p) > 0 {
-			if search[0] < p[0] {
+			if count == 20 {
 				break
 			}
 		}

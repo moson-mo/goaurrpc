@@ -8,7 +8,8 @@ import (
 type MemoryDB struct {
 	PackageMap          map[string]PackageInfo
 	PackageNames        []string
-	PackageBaseNames    []string
+	SuggestNames        map[byte][]string
+	SuggestBases        map[byte][]string
 	PackageSlice        []PackageInfo
 	PackageDescriptions []PackageDescription
 	References          map[string][]*PackageInfo
