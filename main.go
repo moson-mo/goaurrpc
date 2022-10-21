@@ -14,7 +14,7 @@ import (
 	go build -ldflags="-X 'main.version=v1.0.0'"
 */
 
-var version = "1.1.7"
+var version = "v1.1.8"
 
 func main() {
 	var settings *config.Settings
