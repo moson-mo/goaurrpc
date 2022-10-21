@@ -44,6 +44,6 @@ type PackageInfo struct {
 }
 
 type PackageDescription struct {
-	Name        string      `json:"Name"`
-	Description null.String `json:"Description"`
+	Name        string `json:"Name"`
+	Description string `json:"Description"`
 }

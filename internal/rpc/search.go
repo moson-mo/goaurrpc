@@ -86,7 +86,7 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 	default:
 		cache = true
 		for _, pkg := range s.memDB.PackageDescriptions {
-			if strings.Contains(pkg.Name, arg) || strings.Contains(pkg.Description.String, arg) {
+			if strings.Contains(pkg.Name, arg) || strings.Contains(pkg.Description, arg) {
 				found = append(found, s.memDB.PackageMap[pkg.Name])
 			}
 		}

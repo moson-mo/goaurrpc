@@ -85,7 +85,7 @@ func (db *MemoryDB) fillHelperVars() {
 		db.PackageMap[pkg.Name] = pkg
 		db.PackageNames = append(db.PackageNames, pkg.Name)
 		baseNames = append(baseNames, pkg.PackageBase)
-		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: pkg.Description})
+		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: strings.ToLower(pkg.Description.String)})
 		if len(pkg.Name) > 0 {
 			db.SuggestNames[pkg.Name[0]] = append(db.SuggestNames[pkg.Name[0]], pkg.Name)
 		}
