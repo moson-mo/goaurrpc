@@ -15,3 +15,10 @@ func (s *server) LogVerbose(a ...any) {
 		s.Log(a...)
 	}
 }
+
+// LogVeryVerbose writes log messages if the very verbose flag is set
+func (s *server) LogVeryVerbose(a ...any) {
+	if s.veryVerbose {
+		s.Log(a...)
+	}
+}

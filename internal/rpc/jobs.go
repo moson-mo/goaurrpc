@@ -104,7 +104,7 @@ func (s *server) cleanupRateLimits() {
 	for ip, rl := range s.rateLimits {
 		if t.Sub(rl.WindowStart) > time.Duration(s.settings.RateLimitTimeWindow)*time.Second {
 			delete(s.rateLimits, ip)
-			s.LogVerbose("Removed rate limit for", ip)
+			s.LogVeryVerbose("Removed rate limit for", ip)
 		}
 	}
 }
@@ -117,7 +117,7 @@ func (s *server) cleanupSearchCache() {
 	for k, ce := range s.searchCache {
 		if t.Sub(ce.TimeAdded) > time.Duration(s.settings.CacheExpirationTime)*time.Second {
 			delete(s.searchCache, k)
-			s.LogVerbose("Removed cache entry for", k)
+			s.LogVeryVerbose("Removed cache entry for", k)
 		}
 	}
 }

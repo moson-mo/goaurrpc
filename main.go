@@ -22,8 +22,13 @@ func main() {
 	// args
 	cfile := flag.String("c", "", "Config file")
 	verbose := flag.Bool("v", false, "Verbose")
+	vverbose := flag.Bool("vv", false, "Very verbose")
 
 	flag.Parse()
+
+	if *vverbose {
+		*verbose = true
+	}
 
 	// set configuration data
 	if *cfile == "" {
@@ -38,7 +43,7 @@ func main() {
 
 	// construct new server and start listening for requests
 	fmt.Printf("goaurrpc %s is starting...\n\n", version)
-	s, err := rpc.New(*settings, *verbose, version)
+	s, err := rpc.New(*settings, *verbose, *vverbose, version)
 	if err != nil {
 		panic(err)
 	}

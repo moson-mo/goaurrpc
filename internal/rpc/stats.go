@@ -18,7 +18,7 @@ number of packages:		%d
 
 func (s *server) rpcStatsHandler(w http.ResponseWriter, r *http.Request) {
 	ip := getRealIP(r, s.settings.TrustedReverseProxies)
-	s.LogVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
+	s.LogVeryVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
 	s.mut.RLock()
 	defer s.mut.RUnlock()

@@ -35,18 +35,20 @@ type server struct {
 	searchCache map[string]CacheEntry
 	lastmod     string
 	verbose     bool
+	veryVerbose bool
 	ver         string
 	lastRefresh time.Time
 	router      *mux.Router
 }
 
 // New creates a new server and immediately loads package data into memory
-func New(settings config.Settings, verbose bool, version string) (*server, error) {
+func New(settings config.Settings, verbose, vverbose bool, version string) (*server, error) {
 	s := server{
 		rateLimits:  make(map[string]RateLimit),
 		searchCache: make(map[string]CacheEntry),
 		stop:        make(chan os.Signal, 1),
 		verbose:     verbose,
+		veryVerbose: vverbose,
 		ver:         version,
 	}
 
@@ -138,7 +140,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// get clients IP address
 	ip := getRealIP(r, s.settings.TrustedReverseProxies)
-	s.LogVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
+	s.LogVeryVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
 	// check if we got a GET or POST request
 	var values url.Values
@@ -268,7 +270,7 @@ func (s *server) isRateLimited(ip string) bool {
 			return true
 		}
 	} else {
-		s.LogVerbose("Rate limit added:", ip)
+		s.LogVeryVerbose("Rate limit added:", ip)
 		s.rateLimits[ip] = RateLimit{
 			Requests:    1,
 			WindowStart: time.Now(),
