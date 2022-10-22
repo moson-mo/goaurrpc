@@ -15,7 +15,7 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-// The allowed query types
+// allowed query types
 var queryTypes = []string{
 	"info",
 	"multiinfo",
@@ -23,6 +23,23 @@ var queryTypes = []string{
 	"msearch",
 	"suggest",
 	"suggest-pkgbase",
+}
+
+// allowed "by" values
+var queryBy = []string{
+	"",
+	"name",
+	"name-desc",
+	"maintainer",
+	"depends",
+	"makedepends",
+	"optdepends",
+	"checkdepends",
+	"provides",
+	"conflicts",
+	"replaces",
+	"keywords",
+	"groups",
 }
 
 var ErrCallBack = errors.New("Invalid callback name.")
@@ -43,6 +60,9 @@ func validateQueryString(values url.Values) error {
 	}
 	if !inSlice(queryTypes, values.Get("type")) {
 		return errors.New("Incorrect request type specified.")
+	}
+	if !inSlice(queryBy, values.Get("by")) {
+		return errors.New("Incorrect by field specified.")
 	}
 	if !hasArg && !hasArgArr && values.Get("by") != "maintainer" {
 		return errors.New("No request type/data specified.")
