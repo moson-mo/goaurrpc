@@ -32,7 +32,7 @@ func (s *server) startJobs(shutdown chan struct{}, wg *sync.WaitGroup) {
 					}
 				} else {
 					elapsed := time.Since(start)
-					s.Log("Successfully reloaded package data in ", elapsed.Milliseconds(), " ms")
+					s.Log("Successfully reloaded package data in", elapsed.Milliseconds(), "ms")
 				}
 			}
 		}
@@ -44,7 +44,7 @@ func (s *server) startJobs(shutdown chan struct{}, wg *sync.WaitGroup) {
 		for {
 			select {
 			case <-shutdown:
-				s.LogVerbose("Stopping routine: Ratelimit cleanup")
+				s.LogVerbose("Stopping routine: Rate-Limit cleanup")
 				return
 			case <-time.After(time.Duration(s.settings.RateLimitCleanupInterval) * time.Second):
 				s.cleanupRateLimits()
