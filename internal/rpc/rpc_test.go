@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -26,7 +27,7 @@ type RpcTestSuite struct {
 }
 
 var conf = config.Settings{
-	Port:                  10666,
+	Port:                  10667,
 	AurFileLocation:       "../../test_data/test_packages.json",
 	MaxResults:            5000,
 	RefreshInterval:       600,
@@ -126,8 +127,9 @@ func (suite *RpcTestSuite) SetupSuite() {
 
 	// start webserver for some http tests
 	modTime := time.Now().UTC()
+	l, err := net.Listen("tcp", "127.0.0.1:10668")
+	suite.Nil(err, err)
 	suite.httpSrv = &http.Server{
-		Addr: "127.0.0.1:10667",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cmodTime, _ := http.ParseTime(r.Header.Get("If-Modified-Since"))
 			mod := r.URL.Query().Get("nomod") == ""
@@ -146,9 +148,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 		}),
 	}
 
-	go func() {
-		suite.httpSrv.ListenAndServe()
-	}()
+	go suite.httpSrv.Serve(l)
 }
 
 // run before each test
@@ -298,6 +298,7 @@ func (suite *RpcTestSuite) TestListen() {
 	suite.srv.settings.RefreshInterval = 1
 	suite.srv.settings.CacheCleanupInterval = 1
 	suite.srv.settings.CacheExpirationTime = 1
+	suite.srv.lastRefresh = time.Time{}
 
 	go func() {
 		err := suite.srv.Listen()
@@ -309,6 +310,7 @@ func (suite *RpcTestSuite) TestListen() {
 	time.Sleep(1200 * time.Millisecond)
 	suite.Empty(suite.srv.rateLimits) // check if rate limit got removed
 	suite.Empty(suite.srv.searchCache)
+	time.Sleep(1200 * time.Millisecond)
 	suite.srv.Stop()
 	suite.srv.settings.Port = 99999 // use impossible port to trigger an error
 	suite.NotNil(suite.srv.Listen())
@@ -328,7 +330,7 @@ func (suite *RpcTestSuite) TestReload() {
 	modTime := time.Now().UTC()
 
 	// reload from http
-	suite.srv.settings.AurFileLocation = "http://127.0.0.1:10667/test_packages.json"
+	suite.srv.settings.AurFileLocation = "http://127.0.0.1:10668/test_packages.json"
 	suite.srv.settings.LoadFromFile = false
 	suite.srv.lastRefresh = modTime.Add(time.Hour * -1)
 	err = suite.srv.reloadData()
@@ -340,7 +342,7 @@ func (suite *RpcTestSuite) TestReload() {
 	suite.Nil(err, err)
 
 	// test for servers not providing "Last-Modified" header
-	suite.srv.settings.AurFileLocation = "http://127.0.0.1:10667/test_packages.json?nomod=1"
+	suite.srv.settings.AurFileLocation = "http://127.0.0.1:10668/test_packages.json?nomod=1"
 	suite.srv.settings.LoadFromFile = false
 	suite.srv.lastRefresh = modTime.Add(time.Hour * -1)
 	err = suite.srv.reloadData()

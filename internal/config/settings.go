@@ -62,24 +62,34 @@ func LoadFromFile(path string) (*Settings, error) {
 	}
 
 	// make sure we got sane config data
+	err = validateSettings(s)
+
+	return &s, err
+}
+
+// validate config settings
+func validateSettings(s Settings) error {
+	if s.RateLimit == 0 {
+		fmt.Printf("Warning: Rate limiting is disabled - RateLimit = 0\n\n")
+	}
+
 	errZero := " needs to be specified / greater than 0"
 	switch 0 {
 	case s.Port:
-		return nil, errors.New("config: Port" + errZero)
+		return errors.New("config: Port" + errZero)
 	case s.MaxResults:
-		return nil, errors.New("config: MaxResults" + errZero)
+		return errors.New("config: MaxResults" + errZero)
 	case s.RefreshInterval:
-		return nil, errors.New("config: RefreshInterval" + errZero)
-	case s.RateLimit:
-		fmt.Println("Warning: Rate limiting is disabled - RateLimit = 0")
+		return errors.New("config: RefreshInterval" + errZero)
 	case s.RateLimitCleanupInterval:
-		return nil, errors.New("config: RateLimitCleanupInterval" + errZero)
+		return errors.New("config: RateLimitCleanupInterval" + errZero)
 	case s.RateLimitTimeWindow:
-		return nil, errors.New("config: RateLimitTimeWindow" + errZero)
+		return errors.New("config: RateLimitTimeWindow" + errZero)
 	case s.CacheCleanupInterval:
-		return nil, errors.New("config: CacheCleanupInterval" + errZero)
+		return errors.New("config: CacheCleanupInterval" + errZero)
 	case s.CacheExpirationTime:
-		return nil, errors.New("config: CacheExpirationTime" + errZero)
+		return errors.New("config: CacheExpirationTime" + errZero)
 	}
-	return &s, nil
+
+	return nil
 }

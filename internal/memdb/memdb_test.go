@@ -1,6 +1,10 @@
 package memdb
 
 import (
+	"context"
+	"net"
+	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -42,7 +46,23 @@ func TestLoadDbFromFile(t *testing.T) {
 }
 
 func TestLoadDbFromUrl(t *testing.T) {
-	urls := []string{"https://github.com/moson-mo/goaurrpc/raw/main/test_data/test_packages.json"}
+	l, _ := net.Listen("tcp", "127.0.0.1:10669")
+	httpSrv := &http.Server{
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			b, _ := os.ReadFile("../../test_data/test_packages.json")
+
+			if r.URL.Query().Get("nonsense") == "yes" {
+				w.Write(b[:42])
+				return
+			}
+			w.Write(b)
+		}),
+	}
+
+	go httpSrv.Serve(l)
+	defer httpSrv.Shutdown(context.TODO())
+
+	urls := []string{"http://127.0.0.1:10669"}
 
 	for _, url := range urls {
 		db, _, err := LoadDbFromUrl(url, time.Time{})
@@ -51,7 +71,7 @@ func TestLoadDbFromUrl(t *testing.T) {
 		assert.Equal(t, 666, len(db.PackageNames), "Number of packages don't match")
 	}
 
-	brokenUrls := []string{"https://sdfsdfhahdfagdfgdgdfgdg.agag/raw/main/test_data/test_packages.json"}
+	brokenUrls := []string{"https://sdfsdfhahdfagdfgdgdfgdg.agag/raw/main/test_data/test_packages.json", "http://127.0.0.1:10669?nonsense=yes"}
 
 	for _, url := range brokenUrls {
 		db, _, err := LoadDbFromUrl(url, time.Time{})
