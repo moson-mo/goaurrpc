@@ -74,15 +74,15 @@ func (s *server) reloadData() error {
 		we don't want to stress the aur server
 	*/
 	var ptr *db.MemoryDB
-	var lmod string
+	var lastRefresh time.Time
 	var err error
 	if s.settings.LoadFromFile {
-		ptr, err = db.LoadDbFromFile(s.settings.AurFileLocation)
+		ptr, lastRefresh, err = db.LoadDbFromFile(s.settings.AurFileLocation, s.lastRefresh)
 		if err != nil {
 			return err
 		}
 	} else {
-		ptr, lmod, err = db.LoadDbFromUrl(s.settings.AurFileLocation, s.lastmod)
+		ptr, lastRefresh, err = db.LoadDbFromUrl(s.settings.AurFileLocation, s.lastRefresh)
 		if err != nil {
 			return err
 		}
@@ -90,9 +90,8 @@ func (s *server) reloadData() error {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	s.memDB = ptr
-	s.lastmod = lmod
-	s.lastRefresh = time.Now()
-	metrics.LastRefresh.SetToCurrentTime()
+	s.lastRefresh = lastRefresh
+	metrics.LastRefresh.Set(float64(lastRefresh.UTC().Unix()))
 	return nil
 }
 

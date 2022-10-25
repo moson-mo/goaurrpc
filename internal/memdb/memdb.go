@@ -3,53 +3,70 @@ package memdb
 import (
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"io"
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/moson-mo/goaurrpc/internal/aur"
 )
 
 // LoadDbFromFile loads package data from local JSON file
-func LoadDbFromFile(path string) (*MemoryDB, error) {
+func LoadDbFromFile(path string, lastmod time.Time) (*MemoryDB, time.Time, error) {
 	var b []byte
+
+	file, err := os.Stat(path)
+	if err != nil {
+		return nil, lastmod, err
+	}
+
+	if file.ModTime() == lastmod {
+		return nil, lastmod, errors.New("not modified")
+	}
+
 	if strings.HasSuffix(path, ".gz") {
 		gz, err := os.Open(path)
 		if err != nil {
-			return nil, err
+			return nil, lastmod, err
 		}
 		defer gz.Close()
 		r, err := gzip.NewReader(gz)
 		if err != nil {
-			return nil, err
+			return nil, lastmod, err
 		}
 		b, err = io.ReadAll(r)
 		if err != nil {
-			return nil, err
+			return nil, lastmod, err
 		}
 	} else {
 		var err error
 		b, err = os.ReadFile(path)
 		if err != nil {
-			return nil, err
+			return nil, lastmod, err
 		}
 	}
 
-	return bytesToMemoryDB(b)
+	memdb, err := bytesToMemoryDB(b)
+	if err != nil {
+		return nil, lastmod, err
+	}
+
+	return memdb, file.ModTime(), nil
 }
 
 // LoadDbFromUrl loads package data from web hosted file (packages-meta-ext-v1.json.gz)
-func LoadDbFromUrl(url string, lastmod string) (*MemoryDB, string, error) {
-	b, lastmod, err := aur.DownloadPackageData(url, lastmod)
+func LoadDbFromUrl(url string, lastmod time.Time) (*MemoryDB, time.Time, error) {
+	b, newmod, err := aur.DownloadPackageData(url, lastmod)
 	if err != nil {
-		return nil, "", err
+		return nil, lastmod, err
 	}
 	memdb, err := bytesToMemoryDB(b)
 	if err != nil {
-		return nil, "", err
+		return nil, lastmod, err
 	}
-	return memdb, lastmod, nil
+	return memdb, newmod, nil
 }
 
 // constructs MemoryDB struct

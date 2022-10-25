@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -17,6 +18,7 @@ import (
 type RpcTestSuite struct {
 	suite.Suite
 	srv                   *server
+	httpSrv               *http.Server
 	ExpectedRpcResults    map[string]string
 	ExpectedArgumentsList map[*url.Values][]string
 	ExpectedArguments     map[*url.Values]string
@@ -121,12 +123,39 @@ func (suite *RpcTestSuite) SetupSuite() {
 	var err error
 	suite.srv, err = New(conf, true, true, "")
 	suite.Nil(err, "Could not create rpc server")
+
+	// start webserver for some http tests
+	modTime := time.Now().UTC()
+	suite.httpSrv = &http.Server{
+		Addr: "127.0.0.1:10667",
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			cmodTime, _ := http.ParseTime(r.Header.Get("If-Modified-Since"))
+			mod := r.URL.Query().Get("nomod") == ""
+
+			if mod && (modTime.Equal(cmodTime) || cmodTime.Before(modTime)) {
+				w.WriteHeader(304)
+				return
+			}
+
+			if mod {
+				w.Header().Set("Last-Modified", time.Now().Format(http.TimeFormat))
+			}
+
+			b, _ := os.ReadFile(conf.AurFileLocation)
+			w.Write(b)
+		}),
+	}
+
+	go func() {
+		suite.httpSrv.ListenAndServe()
+	}()
 }
 
 // run before each test
 func (suite *RpcTestSuite) SetupTest() {
 	// reset settings
 	suite.srv.settings = conf
+	suite.srv.lastRefresh = time.Time{}
 	suite.srv.reloadData()
 }
 
@@ -138,6 +167,9 @@ func (suite *RpcTestSuite) TearDownSuite() {
 		err = os.Remove(log)
 		suite.Nil(err)
 	}
+
+	suite.httpSrv.Shutdown(context.TODO())
+
 	fmt.Println(">>> RPC tests completed")
 }
 
@@ -186,6 +218,10 @@ func (suite *RpcTestSuite) TestRpcHandlers() {
 			suite.srv.router.ServeHTTP(rr, req)
 			suite.Equal(v, rr.Body.String(), "Input: "+k)
 		}
+
+		// lets disable search cache and rate limit for the next iteration
+		suite.srv.settings.EnableSearchCache = false
+		suite.srv.settings.RateLimit = 0
 	}
 }
 
@@ -270,16 +306,45 @@ func (suite *RpcTestSuite) TestListen() {
 
 	suite.srv.rateLimits["test"] = RateLimit{WindowStart: time.Now().AddDate(0, 0, -2), Requests: 1}
 	suite.srv.searchCache["test"] = CacheEntry{}
-	time.Sleep(1000 * time.Millisecond)
-	suite.srv.settings.AurFileLocation = "https://github.com/moson-mo/goaurrpc/raw/main/test_data/test_packages.json"
-	suite.srv.settings.LoadFromFile = false
-	time.Sleep(1000 * time.Millisecond)
+	time.Sleep(1200 * time.Millisecond)
 	suite.Empty(suite.srv.rateLimits) // check if rate limit got removed
 	suite.Empty(suite.srv.searchCache)
 	suite.srv.Stop()
-
 	suite.srv.settings.Port = 99999 // use impossible port to trigger an error
 	suite.NotNil(suite.srv.Listen())
+}
+
+// test data reload
+func (suite *RpcTestSuite) TestReload() {
+	// since we reload data before each test, this should throw "not modified"
+	err := suite.srv.reloadData()
+	suite.Equal("not modified", err.Error(), "Should be \"not modified\"")
+
+	// should reload data
+	suite.srv.lastRefresh = time.Time{}
+	err = suite.srv.reloadData()
+	suite.Nil(err, "Error reloading data")
+
+	modTime := time.Now().UTC()
+
+	// reload from http
+	suite.srv.settings.AurFileLocation = "http://127.0.0.1:10667/test_packages.json"
+	suite.srv.settings.LoadFromFile = false
+	suite.srv.lastRefresh = modTime.Add(time.Hour * -1)
+	err = suite.srv.reloadData()
+	suite.NotNil(err, "Error should not be nil")
+	suite.Equal("not modified", err.Error(), "Should be \"not modified\"")
+
+	suite.srv.lastRefresh = time.Now().UTC().Add(time.Second * 1)
+	err = suite.srv.reloadData()
+	suite.Nil(err, err)
+
+	// test for servers not providing "Last-Modified" header
+	suite.srv.settings.AurFileLocation = "http://127.0.0.1:10667/test_packages.json?nomod=1"
+	suite.srv.settings.LoadFromFile = false
+	suite.srv.lastRefresh = modTime.Add(time.Hour * -1)
+	err = suite.srv.reloadData()
+	suite.Nil(err, err)
 }
 
 // purposefully crash reload function

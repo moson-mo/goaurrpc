@@ -33,7 +33,6 @@ type server struct {
 	stop        chan os.Signal
 	rateLimits  map[string]RateLimit
 	searchCache map[string]CacheEntry
-	lastmod     string
 	verbose     bool
 	veryVerbose bool
 	ver         string
@@ -218,7 +217,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// handle info / search calls
-	var result RpcResult
+	result := RpcResult{}
 	cache := false
 	s.mut.RLock()
 	switch t {
@@ -226,8 +225,6 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		result = s.rpcInfo(values)
 	case "search", "msearch":
 		result, cache = s.rpcSearch(values)
-	default:
-		result = RpcResult{}
 	}
 	s.mut.RUnlock()
 
