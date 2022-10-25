@@ -36,7 +36,7 @@ var conf = config.Settings{
 	TrustedReverseProxies: []string{"127.0.0.1", "::1"},
 	EnableSearchCache:     true,
 	RateLimitTimeWindow:   86400,
-	LogFile:               "log.tst",
+	LogFile:               "/tmp/log.tst",
 	EnableMetrics:         true,
 }
 
