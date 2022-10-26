@@ -15,9 +15,9 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 	switch by {
 	case "name":
 		cache = true
-		for _, name := range s.memDB.PackageNames {
-			if strings.Contains(name, arg) {
-				found = append(found, s.memDB.PackageMap[name])
+		for _, name := range s.memDB.PackageDescriptions {
+			if strings.Contains(name.Name, arg) {
+				found = append(found, *s.memDB.PackageMap[name.Name])
 			}
 		}
 	case "maintainer":
@@ -57,7 +57,7 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 			}
 		}
 		if pkg, f := s.memDB.PackageMap[arg]; f {
-			found = append(found, pkg)
+			found = append(found, *pkg)
 		}
 	case "conflicts":
 		if pkgs, f := s.memDB.References["con-"+arg]; f {
@@ -87,7 +87,7 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 		cache = true
 		for _, pkg := range s.memDB.PackageDescriptions {
 			if strings.Contains(pkg.Name, arg) || strings.Contains(pkg.Description, arg) {
-				found = append(found, s.memDB.PackageMap[pkg.Name])
+				found = append(found, *s.memDB.PackageMap[pkg.Name])
 			}
 		}
 	}

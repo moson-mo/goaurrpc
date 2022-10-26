@@ -17,7 +17,7 @@ func (s *server) rpcInfo(values url.Values) RpcResult {
 
 	for _, p := range packages {
 		if dbp, ok := s.memDB.PackageMap[p]; ok {
-			rr.Results = append(rr.Results, convDbPkgToInfoRecord(&dbp))
+			rr.Results = append(rr.Results, convDbPkgToInfoRecord(dbp))
 			rr.Resultcount++
 		}
 	}

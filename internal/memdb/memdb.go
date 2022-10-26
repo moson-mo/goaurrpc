@@ -86,7 +86,7 @@ func bytesToMemoryDB(b []byte) (*MemoryDB, error) {
 func (db *MemoryDB) fillHelperVars() {
 	n := len(db.PackageSlice)
 
-	db.PackageMap = make(map[string]PackageInfo, n)
+	db.PackageMap = make(map[string]*PackageInfo, n)
 	db.PackageNames = make([]string, 0, n)
 	db.PackageDescriptions = make([]PackageDescription, 0, n)
 	db.References = map[string][]*PackageInfo{}
@@ -110,53 +110,53 @@ func (db *MemoryDB) fillHelperVars() {
 		// depends
 		for _, ref := range pkg.Depends {
 			sref := "dep-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// makedepends
 		for _, ref := range pkg.MakeDepends {
 			sref := "mdep-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// optdepends
 		for _, ref := range pkg.OptDepends {
 			sref := "odep-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// checkdepends
 		for _, ref := range pkg.CheckDepends {
 			sref := "cdep-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// provides
 		for _, ref := range pkg.Provides {
 			sref := "pro-" + stripRef(ref)
 			if ref != pkg.Name {
-				db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+				db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 			}
 		}
 		// conflicts
 		for _, ref := range pkg.Conflicts {
 			sref := "con-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// replaces
 		for _, ref := range pkg.Replaces {
 			sref := "rep-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// groups
 		for _, ref := range pkg.Groups {
 			sref := "grp-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// keywords
 		for _, ref := range pkg.Keywords {
 			sref := "key-" + stripRef(ref)
-			db.References[sref] = append(db.References[sref], &db.PackageSlice[i])
+			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// maintainer
 		maintainer := "m-" + pkg.Maintainer.ValueOrZero()
-		db.References[maintainer] = append(db.References[maintainer], &db.PackageSlice[i])
+		db.References[maintainer] = append(db.References[maintainer], db.PackageSlice[i])
 	}
 
 	for _, base := range distinctStringSlice(baseNames) {
