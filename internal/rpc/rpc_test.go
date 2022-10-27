@@ -40,6 +40,20 @@ var conf = config.Settings{
 	EnableMetrics:         true,
 }
 
+var confBroken = config.Settings{
+	Port:                  99999,
+	AurFileLocation:       "../../test_data/test_packages.json",
+	MaxResults:            5000,
+	RefreshInterval:       600,
+	RateLimit:             4000,
+	LoadFromFile:          true,
+	TrustedReverseProxies: []string{"127.0.0.1", "::1"},
+	EnableSearchCache:     true,
+	RateLimitTimeWindow:   86400,
+	LogFile:               "/tmp/log.tst",
+	EnableMetrics:         true,
+}
+
 // setup our test suite
 func (suite *RpcTestSuite) SetupSuite() {
 	fmt.Println(">>> Setting up RPC test suite")
@@ -305,15 +319,24 @@ func (suite *RpcTestSuite) TestListen() {
 		suite.Equal(http.ErrServerClosed, err)
 	}()
 
+	suite.srv.mutLimit.Lock()
 	suite.srv.rateLimits["test"] = RateLimit{WindowStart: time.Now().AddDate(0, 0, -2), Requests: 1}
+	suite.srv.mutLimit.Unlock()
+	suite.srv.mutCache.Lock()
 	suite.srv.searchCache["test"] = CacheEntry{}
+	suite.srv.mutCache.Unlock()
 	time.Sleep(1200 * time.Millisecond)
+	suite.srv.mutLimit.Lock()
 	suite.Empty(suite.srv.rateLimits) // check if rate limit got removed
+	suite.srv.mutLimit.Unlock()
+	suite.srv.mutCache.Lock()
 	suite.Empty(suite.srv.searchCache)
+	suite.srv.mutCache.Unlock()
 	time.Sleep(1200 * time.Millisecond)
 	suite.srv.Stop()
-	suite.srv.settings.Port = 99999 // use impossible port to trigger an error
-	suite.NotNil(suite.srv.Listen())
+	srv, err := New(confBroken, false, false, "")
+	suite.Nil(err)
+	suite.NotNil(srv.Listen())
 }
 
 // test data reload
