@@ -19,7 +19,7 @@ func TestLoadDbFromFile(t *testing.T) {
 
 	for _, file := range files {
 		db, _, err := LoadDbFromFile(file, time.Time{})
-		assert.Nil(t, err)
+		assert.Nil(t, err, err)
 		assert.NotNil(t, db)
 		assert.Equal(t, 666, len(db.PackageNames), "Number of packages don't match")
 	}
@@ -46,7 +46,8 @@ func TestLoadDbFromFile(t *testing.T) {
 }
 
 func TestLoadDbFromUrl(t *testing.T) {
-	l, _ := net.Listen("tcp", "127.0.0.1:10669")
+	l, err := net.Listen("tcp", "127.0.0.1:10669")
+	assert.Nil(t, err, err)
 	httpSrv := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			b, _ := os.ReadFile("../../test_data/test_packages.json")
@@ -66,7 +67,7 @@ func TestLoadDbFromUrl(t *testing.T) {
 
 	for _, url := range urls {
 		db, _, err := LoadDbFromUrl(url, time.Time{})
-		assert.Nil(t, err)
+		assert.Nil(t, err, err)
 		assert.NotNil(t, db)
 		assert.Equal(t, 666, len(db.PackageNames), "Number of packages don't match")
 	}
@@ -87,5 +88,5 @@ func TestBytesToMemory(t *testing.T) {
 
 	db, err = bytesToMemoryDB([]byte("[{\"Name\":\"testpkg\"}]"))
 	assert.NotNil(t, db)
-	assert.Nil(t, err)
+	assert.Nil(t, err, err)
 }
