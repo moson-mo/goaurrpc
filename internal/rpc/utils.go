@@ -183,8 +183,6 @@ func getRealIP(r *http.Request, trustedProxies []string) string {
 }
 
 // converts db.PackageInfo to rpc.InfoRecord
-// we could directly pass PackageInfo to the client as well
-// but we want to keep things flexible in case of changes
 func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
 	ir := InfoRecord{
 		ID:             dbp.ID,
@@ -192,15 +190,15 @@ func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
 		PackageBaseID:  dbp.PackageBaseID,
 		PackageBase:    dbp.PackageBase,
 		Version:        dbp.Version,
-		Description:    dbp.Description,
-		URL:            dbp.URL,
+		Description:    null.NewString(dbp.Description, dbp.Description != ""),
+		URL:            null.NewString(dbp.URL, dbp.URL != ""),
 		NumVotes:       dbp.NumVotes,
 		Popularity:     dbp.Popularity,
-		OutOfDate:      dbp.OutOfDate,
-		Maintainer:     dbp.Maintainer,
+		OutOfDate:      null.NewInt(int64(dbp.OutOfDate), dbp.OutOfDate != 0),
+		Maintainer:     null.NewString(dbp.Maintainer, dbp.Maintainer != ""),
 		FirstSubmitted: dbp.FirstSubmitted,
 		LastModified:   dbp.LastModified,
-		URLPath:        dbp.URLPath,
+		URLPath:        null.NewString(dbp.URLPath, dbp.URLPath != ""),
 		MakeDepends:    dbp.MakeDepends,
 		License:        dbp.License,
 		Depends:        dbp.Depends,
@@ -231,17 +229,17 @@ func convDbPkgToSearchRecord(dbp *db.PackageInfo) SearchRecord {
 	sr := SearchRecord{
 		ID:             dbp.ID,
 		PackageBaseID:  dbp.PackageBaseID,
-		Description:    dbp.Description,
+		Description:    null.NewString(dbp.Description, dbp.Description != ""),
 		FirstSubmitted: dbp.FirstSubmitted,
 		LastModified:   dbp.LastModified,
-		Maintainer:     dbp.Maintainer,
+		Maintainer:     null.NewString(dbp.Maintainer, dbp.Maintainer != ""),
 		Name:           dbp.Name,
 		NumVotes:       dbp.NumVotes,
-		OutOfDate:      dbp.OutOfDate,
+		OutOfDate:      null.NewInt(int64(dbp.OutOfDate), dbp.OutOfDate != 0),
 		PackageBase:    dbp.PackageBase,
 		Popularity:     dbp.Popularity,
-		URL:            dbp.URL,
-		URLPath:        dbp.URLPath,
+		URL:            null.NewString(dbp.URL, dbp.URL != ""),
+		URLPath:        null.NewString(dbp.URLPath, dbp.URLPath != ""),
 		Version:        dbp.Version,
 	}
 

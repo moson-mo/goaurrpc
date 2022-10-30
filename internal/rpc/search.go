@@ -15,9 +15,9 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 	switch by {
 	case "name":
 		cache = true
-		for _, name := range s.memDB.PackageDescriptions {
-			if strings.Contains(name.Name, arg) {
-				found = append(found, *s.memDB.PackageMap[name.Name])
+		for _, name := range s.memDB.PackageNames {
+			if strings.Contains(name, arg) {
+				found = append(found, *s.memDB.PackageMap[name])
 			}
 		}
 	case "maintainer":

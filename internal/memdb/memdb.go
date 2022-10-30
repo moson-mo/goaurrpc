@@ -102,7 +102,7 @@ func (db *MemoryDB) fillHelperVars() {
 		db.PackageMap[pkg.Name] = pkg
 		db.PackageNames = append(db.PackageNames, pkg.Name)
 		baseNames = append(baseNames, pkg.PackageBase)
-		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: strings.ToLower(pkg.Description.String)})
+		db.PackageDescriptions = append(db.PackageDescriptions, PackageDescription{Name: pkg.Name, Description: strings.ToLower(pkg.Description)})
 		if len(pkg.Name) > 0 {
 			db.SuggestNames[pkg.Name[0]] = append(db.SuggestNames[pkg.Name[0]], pkg.Name)
 		}
@@ -155,7 +155,7 @@ func (db *MemoryDB) fillHelperVars() {
 			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// maintainer
-		maintainer := "m-" + pkg.Maintainer.ValueOrZero()
+		maintainer := "m-" + pkg.Maintainer
 		db.References[maintainer] = append(db.References[maintainer], db.PackageSlice[i])
 	}
 
