@@ -119,6 +119,8 @@ func sendSettings(settings config.Settings, w http.ResponseWriter) {
 }
 
 func (s *server) sendChangeOption(name, value string, isPost bool, w http.ResponseWriter) {
+	s.LogVerbose("Admin initiated change of setting '" + name + "' to '" + value + "'")
+
 	// get/set individual option
 	switch name {
 	case "aur-file-location":
