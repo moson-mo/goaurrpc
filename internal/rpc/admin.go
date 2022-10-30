@@ -9,20 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
-	"gopkg.in/guregu/null.v4"
 )
-
-type ConfigUpdate struct {
-	AurFileLocation          null.String
-	MaxResults               null.Int
-	RefreshInterval          null.Int
-	RateLimit                null.Int
-	RateLimitCleanupInterval null.Int
-	RateLimitTimeWindow      null.Int
-	EnableSearchCache        null.Bool
-	CacheCleanupInterval     null.Int
-	CacheExpirationTime      null.Int
-}
 
 // middleware for authentication (API key)
 func (s *server) rpcAdminMiddleware(hf http.HandlerFunc) http.Handler {
