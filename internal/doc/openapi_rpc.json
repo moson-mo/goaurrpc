@@ -2,19 +2,9 @@
   "openapi": "3.0.1",
   "info": {
     "title": "AUR /rpc",
-    "description": "## AUR Metadata API - Version 5\nReport issues here: [aurweb issue tracker](https://gitlab.archlinux.org/archlinux/aurweb/-/issues/)\n",
-    "version": "5.0"
+    "description": "## AUR Metadata API\n### New path-based version of the /rpc v5 API.  \n#### Note: The endpoint is still compatible with the old specification as described [here](/rpc/olddoc.html)\n",
+    "version": "1.0"
   },
-  "servers": [
-    {
-      "url": "https://aur.archlinux.org",
-      "description": "Official aurweb endpoint"
-    },
-    {
-      "url": "https://server.moson.rocks",
-      "description": "Unofficial Go implementation"
-    }
-  ],
   "tags": [
     {
       "name": "Package search"
@@ -36,77 +26,6 @@
         ],
         "description": "### Search for packages with a single term returning basic package information\n",
         "summary": "Single-term search",
-        "responses": {
-          "200": {
-            "description": "Search result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResult"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/rpc/v5/search": {
-      "get": {
-        "tags": [
-          "Package search"
-        ],
-        "description": "### Search for packages with a single term returning basic package information\n",
-        "summary": "Single-term search",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Term"
-          },
-          {
-            "$ref": "#/components/parameters/SearchBy"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Search result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SearchResult"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResult"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Package search"
-        ],
-        "description": "### Search for packages with a single term returning basic package information\n",
-        "summary": "Single-term search",
-        "requestBody": {
-          "$ref": "#/components/requestBodies/SearchBody"
-        },
         "responses": {
           "200": {
             "description": "Search result",
@@ -240,7 +159,7 @@
         "tags": [
           "Package search"
         ],
-        "description": "### Returns a list of package-names starting with {arg}\n",
+        "description": "### Returns a list of package-names starting with {arg}\n#### *(max 20 results)*\n",
         "summary": "Package name search (starts-with)",
         "parameters": [
           {
@@ -251,35 +170,9 @@
           "200": {
             "description": "Suggest results",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/rpc/v5/suggest": {
-      "get": {
-        "tags": [
-          "Package search"
-        ],
-        "description": "### Returns a list of package-names starting with {arg}\n",
-        "summary": "Package name search (starts-with)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Term"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Suggest results",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/PackageNames"
                 }
               }
             }
@@ -292,7 +185,7 @@
         "tags": [
           "Package search"
         ],
-        "description": "### Returns a list of package-base-names starting with {arg}\n",
+        "description": "### Returns a list of package-base-names starting with {arg}\n#### *(max 20 results)*\n",
         "summary": "Package base search (starts-with)",
         "parameters": [
           {
@@ -303,35 +196,9 @@
           "200": {
             "description": "Suggest results",
             "content": {
-              "text/plain": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/rpc/v5/suggest-pkgbase": {
-      "get": {
-        "tags": [
-          "Package search"
-        ],
-        "description": "### Returns a list of package-base-names starting with {arg}\n",
-        "summary": "Package base search (starts-with)",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Term"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Suggest results",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/PackageNames"
                 }
               }
             }
@@ -342,6 +209,12 @@
   },
   "components": {
     "schemas": {
+      "PackageNames": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
       "SearchResult": {
         "description": "SearchResult contains a list of basic package information",
         "type": "object",
@@ -488,7 +361,8 @@
           },
           "Description": {
             "type": "string",
-            "description": "From PKGBUILD `pkgdesc`"
+            "description": "From PKGBUILD `pkgdesc`",
+            "nullable": true
           },
           "PackageBaseID": {
             "type": "integer"
@@ -516,7 +390,8 @@
           },
           "OutOfDate": {
             "type": "string",
-            "description": "UNIX timestamp, or null if not flagged"
+            "description": "UNIX timestamp, or null if not flagged",
+            "nullable": true
           },
           "Version": {
             "type": "string",
@@ -524,11 +399,13 @@
           },
           "URLPath": {
             "type": "string",
-            "description": "Path to gzipped snapshot"
+            "description": "Path to gzipped snapshot",
+            "nullable": true
           },
           "URL": {
             "type": "string",
-            "description": "From PKGBUILD `url`"
+            "description": "From PKGBUILD `url`",
+            "nullable": true
           }
         }
       },
@@ -586,7 +463,12 @@
             "checkdepends",
             "optdepends",
             "makedepends",
-            "maintainer"
+            "maintainer",
+            "provides",
+            "conflicts",
+            "replaces",
+            "keywords",
+            "groups"
           ],
           "default": "name-desc"
         }
@@ -652,7 +534,12 @@
                     "checkdepends",
                     "optdepends",
                     "makedepends",
-                    "maintainer"
+                    "maintainer",
+                    "provides",
+                    "conflicts",
+                    "replaces",
+                    "keywords",
+                    "groups"
                   ],
                   "default": "name-desc"
                 }

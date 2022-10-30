@@ -1,8 +1,8 @@
 {
     "openapi": "3.0.1",
     "info": {
-      "title": "goaurrpc /admin API",
-      "description": "## Endpoint to control goaurrpc at runtime\n",
+      "title": "goaurrpc /admin",
+      "description": "## Admin API for controlling goaurrpc at runtime\n",
       "version": "1.0"
     },
     "tags": [

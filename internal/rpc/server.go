@@ -16,6 +16,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
+	"github.com/moson-mo/goaurrpc/internal/doc"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"github.com/moson-mo/goaurrpc/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
@@ -143,6 +144,17 @@ func (s *server) setupRoutes() {
 		s.router.Handle("/admin/settings", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
 		s.router.Handle("/admin/settings/", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
 	}
+
+	// swagger
+	s.router.HandleFunc("/rpc/swagger", doc.SwaggerRpcHandler)
+	s.router.HandleFunc("/rpc/swagger/", doc.SwaggerRpcHandler)
+	if s.settings.EnableAdminApi {
+		s.router.HandleFunc("/admin/swagger", doc.SwaggerAdminHandler)
+		s.router.HandleFunc("/admin/swagger/", doc.SwaggerAdminHandler)
+	}
+	s.router.HandleFunc("/rpc/openapi.json", doc.SpecRpcHandler)
+	s.router.HandleFunc("/admin/openapi.json", doc.SpecAdminHandler)
+	s.router.HandleFunc("/rpc/olddoc.html", doc.SpecOldHandler)
 }
 
 // handles client connections
@@ -196,8 +208,7 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// if we don't get any query parameters, return documentation
 	if len(values) == 0 {
-		w.Header().Add("Content-Type", "text/html; charset=UTF-8")
-		fmt.Fprintln(w, doc)
+		http.Redirect(w, r, "/rpc/swagger", http.StatusFound)
 		return
 	}
 
