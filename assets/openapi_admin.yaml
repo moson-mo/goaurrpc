@@ -1,0 +1,176 @@
+openapi: 3.0.1
+info:
+  title: goaurrpc /admin API
+  description: |
+    ## Endpoint to control goaurrpc at runtime
+  version: '1.0'
+tags:
+  - name: Settings
+paths:
+  /admin/settings:
+    get:
+      tags:
+        - Settings
+      description: |
+        ### Get current settings
+      summary: Get settings
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+  /admin/settings/{name}:
+    get:
+      tags:
+        - Settings
+      description: |
+        ### Set single option from settings
+      summary: Get option
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Options'
+      responses:
+        '200':
+          description: Message
+          content:
+            html/text:
+              schema:
+                type: string
+                example: Current setting for 'MaxResults' is '5000'
+    post:
+      tags:
+        - Settings
+      description: |
+        ### Change single option in settings
+      summary: Change option
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Options'
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Message
+          content:
+            html/text:
+              schema:
+                type: string
+                example: Changed 'MaxResults' from '5000' to '4000'
+  /admin/run-job/{name}:
+    post:
+      tags:
+        - Jobs
+      description: |
+        ### Run a job
+      summary: Run job
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Jobs'
+      responses:
+        '200':
+          description: Message
+          content:
+            html/text:
+              schema:
+                type: string
+                example: Cleaned up rate-limits
+components:
+  schemas:
+    Settings:
+      type: object
+      properties:
+        Port:
+          type: number
+          example: 10666
+        AurFileLocation:
+          type: string
+          example: https://aur.archlinux.org/packages-meta-ext-v1.json.gz
+        MaxResults:
+          type: number
+          example: 5000
+        RefreshInterval:
+          type: number
+          example: 10
+        RateLimit:
+          type: number
+          example: 0
+        LoadFromFile:
+          type: boolean
+          example: true
+        RateLimitCleanupInterval:
+          type: number
+          example: 600
+        RateLimitTimeWindow:
+          type: number
+          example: 86400
+        TrustedReverseProxies:
+          type: array
+          items:
+            type: string
+          example:
+            - 127.0.0.1
+            - '::1'
+        EnableSSL:
+          type: boolean
+          example: false
+        CertFile:
+          type: string
+          example: ''
+        KeyFile:
+          type: string
+          example: ''
+        EnableSearchCache:
+          type: boolean
+          example: true
+        CacheCleanupInterval:
+          type: number
+          example: 60
+        CacheExpirationTime:
+          type: number
+          example: 180
+        LogFile:
+          type: string
+          example: ''
+        EnableMetrics:
+          type: boolean
+          example: true
+        EnableAdminApi:
+          type: boolean
+          example: true
+        AdminAPIKey:
+          type: string
+          example: ''
+    Options:
+      type: string
+      enum:
+        - aur-file-location
+        - max-results
+        - refresh-interval
+        - rate-limit
+        - rate-limit-cleanup-interval
+        - rate-limit-time-window
+        - cache-cleanup-interval
+        - cache-expiration-time
+        - enable-search-cache
+    Jobs:
+      type: string
+      enum:
+        - reload-data
+        - wipe-cache
+        - wipe-ratelimits
+        - cleanup-cache
+        - cleanup-ratelimits

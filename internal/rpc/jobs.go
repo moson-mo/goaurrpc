@@ -120,3 +120,23 @@ func (s *server) cleanupSearchCache() {
 		}
 	}
 }
+
+// removes all entries from our cache
+func (s *server) wipeSearchCache() int {
+	s.mutCache.Lock()
+	defer s.mutCache.Unlock()
+	numEntries := len(s.searchCache)
+	s.searchCache = map[string]CacheEntry{}
+	s.LogVerbose("Admin wiped search-cache. Number of entries removed:", numEntries)
+	return numEntries
+}
+
+// removes all rate-limit records
+func (s *server) wipeRateLimits() int {
+	s.mutLimit.Lock()
+	defer s.mutLimit.Unlock()
+	numEntries := len(s.rateLimits)
+	s.rateLimits = map[string]RateLimit{}
+	s.LogVerbose("Admin wiped search-cache. Number of entries removed:", numEntries)
+	return numEntries
+}

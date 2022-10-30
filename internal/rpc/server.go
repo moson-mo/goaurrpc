@@ -85,24 +85,8 @@ func (s *server) Listen() error {
 	// start period tasks
 	s.startJobs(shutdown, &wg)
 
-	// routes
-	s.router = mux.NewRouter()
-
-	s.router.HandleFunc("/rpc", s.rpcHandler)
-	s.router.HandleFunc("/rpc/", s.rpcHandler)
-	s.router.HandleFunc("/rpc.php", s.rpcHandler)  // should have been removed ?! but aurweb is answering
-	s.router.HandleFunc("/rpc.php/", s.rpcHandler) // should have been removed ?! but aurweb is answering
-	s.router.HandleFunc("/rpc/stats", s.rpcStatsHandler)
-
-	// v5 with url paths
-	s.router.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
-	s.router.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
-
-	// metrics
-	if s.settings.EnableMetrics {
-		metrics.RegisterMetrics()
-		s.router.Handle("/metrics", promhttp.Handler())
-	}
+	// set up router
+	s.setupRoutes()
 
 	srv := http.Server{
 		Addr:    ":" + strconv.Itoa(s.settings.Port),
@@ -129,6 +113,36 @@ func (s *server) Listen() error {
 // Stop stops the server
 func (s *server) Stop() {
 	s.stop <- os.Interrupt
+}
+
+// set up our routes
+func (s *server) setupRoutes() {
+	// routes
+	s.router = mux.NewRouter()
+
+	s.router.HandleFunc("/rpc", s.rpcHandler)
+	s.router.HandleFunc("/rpc/", s.rpcHandler)
+	s.router.HandleFunc("/rpc.php", s.rpcHandler)  // deprecated
+	s.router.HandleFunc("/rpc.php/", s.rpcHandler) // deprecated
+	s.router.HandleFunc("/rpc/stats", s.rpcStatsHandler)
+
+	// v5 with url paths
+	s.router.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
+	s.router.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
+
+	// metrics
+	if s.settings.EnableMetrics {
+		metrics.RegisterMetrics()
+		s.router.Handle("/metrics", promhttp.Handler())
+	}
+
+	// admin api
+	if s.settings.EnableAdminApi {
+		s.router.Handle("/admin/run-job/{name}", s.rpcAdminMiddleware(s.rpcAdminJobsHandler)).Methods("POST")
+		s.router.Handle("/admin/settings/{name}", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
+		s.router.Handle("/admin/settings", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
+		s.router.Handle("/admin/settings/", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
+	}
 }
 
 // handles client connections

@@ -44,7 +44,9 @@ If this parameter is not passed, the default config will be used (sample.conf co
 	"EnableSearchCache": true,
 	"CacheCleanupInterval": 60,
 	"CacheExpirationTime": 180,
-	"EnableMetrics": true
+	"EnableMetrics": true,
+	"EnableAdminApi": false,
+	"AdminAPIKey": "change-me"
 }
 ```
 
@@ -66,6 +68,8 @@ If this parameter is not passed, the default config will be used (sample.conf co
 | CacheCleanupInterval | The interval (in seconds) for performing cleanup of search-cache entries |
 | CacheExpirationTime | The number of seconds an entry should stay in the search-cache |
 | EnableMetrics | Enables Prometheus metrics at /metrics |
+| EnableAdminApi | Enables the administrative endpoint at /admin |
+| AdminAPIKey | The API Key that is to be provided in the header for the /admin endpoint |
 
 ### Public endpoint
 

@@ -26,6 +26,8 @@ type Settings struct {
 	CacheExpirationTime      int // in seconds
 	LogFile                  string
 	EnableMetrics            bool
+	EnableAdminApi           bool
+	AdminAPIKey              string
 }
 
 // DefaultSettings returns the default settings for our server
@@ -45,6 +47,8 @@ func DefaultSettings() *Settings {
 		CacheExpirationTime:      180,
 		LogFile:                  "",
 		EnableMetrics:            true,
+		EnableAdminApi:           false,
+		AdminAPIKey:              "change-me",
 	}
 	return &s
 }
