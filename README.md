@@ -79,7 +79,7 @@ Feel free to make use of the following public instance of goaurrpc:
 
 ### Future plans / ideas
 
-- Extend request types (see [v6-proposal branch](https://github.com/moson-mo/goaurrpc/tree/v6-proposal))
+- Extend request types (see [rpc-v6](https://github.com/moson-mo/goaurrpc/tree/rpc-v6))
 - Admin REST-API to be able to control goaurrpc at runtime, for example:
   - reload data
   - get statistics (memory consumption, rate limits, etc.)
