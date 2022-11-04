@@ -2,27 +2,22 @@
   "openapi": "3.0.1",
   "info": {
     "title": "AUR /rpc",
-    "description": "## AUR Metadata API\n### New path-based version of the /rpc v5 API.  \n#### Note: The endpoint is still compatible with the old specification as described [here](/rpc/olddoc.html)\n",
+    "description": "## AUR Metadata API\n### New path-based version of the /rpc v5 and v6 API.  \n#### Note: The endpoint is still compatible with the old specification as described [here](/rpc/olddoc.html)\n",
     "version": "1.0"
   },
-  "tags": [
-    {
-      "name": "Package search"
-    }
-  ],
   "paths": {
     "/rpc/v5/search/{arg}": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/TermPath"
+          "$ref": "#/components/parameters/TermPathV5"
         },
         {
-          "$ref": "#/components/parameters/SearchBy"
+          "$ref": "#/components/parameters/SearchByV5"
         }
       ],
       "get": {
         "tags": [
-          "Package search"
+          "Package search (v5)"
         ],
         "description": "### Search for packages with a single term returning basic package information\n",
         "summary": "Single-term search",
@@ -32,7 +27,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SearchResult"
+                  "$ref": "#/components/schemas/SearchResultV5"
                 }
               }
             }
@@ -53,7 +48,7 @@
     "/rpc/v5/info/{arg}": {
       "get": {
         "tags": [
-          "Package details"
+          "Package details (v5)"
         ],
         "description": "### Get detailed information for a single package\n",
         "summary": "Single package lookup",
@@ -68,7 +63,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InfoResult"
+                  "$ref": "#/components/schemas/InfoResultV5"
                 }
               }
             }
@@ -89,7 +84,7 @@
     "/rpc/v5/info": {
       "get": {
         "tags": [
-          "Package details"
+          "Package details (v5)"
         ],
         "description": "### Get detailed information for multiple packages\n",
         "summary": "Multi package lookup",
@@ -104,7 +99,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InfoResult"
+                  "$ref": "#/components/schemas/InfoResultV5"
                 }
               }
             }
@@ -123,7 +118,7 @@
       },
       "post": {
         "tags": [
-          "Package details"
+          "Package details (v5)"
         ],
         "description": "### Get detailed information for multiple packages \n",
         "summary": "Multi package lookup",
@@ -136,7 +131,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/InfoResult"
+                  "$ref": "#/components/schemas/InfoResultV5"
                 }
               }
             }
@@ -157,13 +152,13 @@
     "/rpc/v5/suggest/{arg}": {
       "get": {
         "tags": [
-          "Package search"
+          "Package search (v5)"
         ],
         "description": "### Returns a list of package-names starting with {arg}\n#### *(max 20 results)*\n",
         "summary": "Package name search (starts-with)",
         "parameters": [
           {
-            "$ref": "#/components/parameters/TermPath"
+            "$ref": "#/components/parameters/TermPathV5"
           }
         ],
         "responses": {
@@ -183,13 +178,389 @@
     "/rpc/v5/suggest-pkgbase/{arg}": {
       "get": {
         "tags": [
-          "Package search"
+          "Package search (v5)"
         ],
         "description": "### Returns a list of package-base-names starting with {arg}\n#### *(max 20 results)*\n",
         "summary": "Package base search (starts-with)",
         "parameters": [
           {
-            "$ref": "#/components/parameters/TermPath"
+            "$ref": "#/components/parameters/TermPathV5"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageNames"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/search/{arg}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/TermPathV6"
+        },
+        {
+          "$ref": "#/components/parameters/SearchByV6"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Search for packages with a single term returning basic package information\n",
+        "summary": "Single-term search",
+        "responses": {
+          "200": {
+            "description": "Search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/search": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Terms"
+          },
+          {
+            "$ref": "#/components/parameters/SearchByV6"
+          }
+        ],
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Search for packages with multiple terms returning basic package information\n",
+        "summary": "Multi-term search",
+        "responses": {
+          "200": {
+            "description": "Search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SearchBodyV6"
+        },
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Search for packages with multiple terms returning basic package information\n",
+        "summary": "Multi-term search",
+        "responses": {
+          "200": {
+            "description": "Search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/search-info/{arg}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/TermPathV6"
+        },
+        {
+          "$ref": "#/components/parameters/SearchByV6"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Search for packages with a single term returning detailed package information\n",
+        "summary": "Single-term search",
+        "responses": {
+          "200": {
+            "description": "Search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/search-info": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Terms"
+          },
+          {
+            "$ref": "#/components/parameters/SearchByV6"
+          }
+        ],
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Search for packages with multiple terms returning detailed package information\n",
+        "summary": "Multi-term search",
+        "responses": {
+          "200": {
+            "description": "Search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "$ref": "#/components/requestBodies/SearchBodyV6"
+        },
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Search for packages with multiple terms returning detailed package information\n",
+        "summary": "Multi-term search",
+        "responses": {
+          "200": {
+            "description": "Search result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/info/{arg}": {
+      "get": {
+        "tags": [
+          "Package details (v6)"
+        ],
+        "description": "### Get detailed information for a single package\n",
+        "summary": "Single package lookup",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Pkgname"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Info result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/info": {
+      "get": {
+        "tags": [
+          "Package details (v6)"
+        ],
+        "description": "### Get detailed information for multiple packages\n",
+        "summary": "Multi package lookup",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Pkgnames"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Info result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Package details (v6)"
+        ],
+        "description": "### Get detailed information for multiple packages \n",
+        "summary": "Multi package lookup",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/InfoBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Info result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoResultV6"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/suggest/{arg}": {
+      "get": {
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Returns a list of package-names starting with {arg}\n#### *(max 20 results)*\n",
+        "summary": "Package name search (starts-with)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TermPathV5"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageNames"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rpc/v6/suggest-pkgbase/{arg}": {
+      "get": {
+        "tags": [
+          "Package search (v6)"
+        ],
+        "description": "### Returns a list of package-base-names starting with {arg}\n#### *(max 20 results)*\n",
+        "summary": "Package base search (starts-with)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/TermPathV5"
           }
         ],
         "responses": {
@@ -215,7 +586,7 @@
           "type": "string"
         }
       },
-      "SearchResult": {
+      "SearchResultV5": {
         "description": "SearchResult contains a list of basic package information",
         "type": "object",
         "allOf": [
@@ -229,7 +600,7 @@
                 "items": {
                   "allOf": [
                     {
-                      "$ref": "#/components/schemas/PackageBasic"
+                      "$ref": "#/components/schemas/PackageBasicV5"
                     },
                     {
                       "type": "object",
@@ -246,7 +617,7 @@
           }
         ]
       },
-      "InfoResult": {
+      "InfoResultV5": {
         "description": "InfoResult contains a list of detailed package information",
         "type": "object",
         "allOf": [
@@ -258,19 +629,19 @@
               "results": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/PackageDetailed"
+                  "$ref": "#/components/schemas/PackageDetailedV5"
                 }
               }
             }
           }
         ]
       },
-      "PackageDetailed": {
+      "PackageDetailedV5": {
         "description": "Detailed package information",
         "type": "object",
         "allOf": [
           {
-            "$ref": "#/components/schemas/PackageBasic"
+            "$ref": "#/components/schemas/PackageBasicV5"
           },
           {
             "properties": {
@@ -348,7 +719,7 @@
           }
         ]
       },
-      "PackageBasic": {
+      "PackageBasicV5": {
         "description": "Basic package information",
         "type": "object",
         "properties": {
@@ -409,6 +780,208 @@
           }
         }
       },
+      "SearchResultV6": {
+        "description": "SearchResult contains a list of basic package information",
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseResult"
+          },
+          {
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/PackageBasicV6"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "arg": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "InfoResultV6": {
+        "description": "InfoResult contains a list of detailed package information",
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseResult"
+          },
+          {
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PackageDetailedV6"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PackageDetailedV6": {
+        "description": "Detailed package information",
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PackageBasicV6"
+          },
+          {
+            "properties": {
+              "License": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `license`"
+              },
+              "Depends": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `depends`"
+              },
+              "MakeDepends": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `makedepends`"
+              },
+              "OptDepends": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `optdepends`"
+              },
+              "CheckDepends": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `checkdepends`"
+              },
+              "Provides": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `provides`"
+              },
+              "Conflicts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `conflicts`"
+              },
+              "Replaces": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `replaces`"
+              },
+              "Groups": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `groups`"
+              },
+              "Keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "From PKGBUILD `keywords`"
+              },
+              "CoMaintainers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PackageBasicV6": {
+        "description": "Basic package information",
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "description": "From PKGBUILD `pkgname`"
+          },
+          "Description": {
+            "type": "string",
+            "description": "From PKGBUILD `pkgdesc`",
+            "nullable": true
+          },
+          "PackageBase": {
+            "type": "string"
+          },
+          "Maintainer": {
+            "type": "string",
+            "nullable": true
+          },
+          "Submitter": {
+            "type": "string",
+            "nullable": true
+          },
+          "NumVotes": {
+            "type": "integer"
+          },
+          "Popularity": {
+            "type": "number"
+          },
+          "FirstSubmitted": {
+            "type": "integer",
+            "description": "UNIX timestamp"
+          },
+          "LastModified": {
+            "type": "integer",
+            "description": "UNIX timestamp"
+          },
+          "OutOfDate": {
+            "type": "string",
+            "description": "UNIX timestamp, or null if not flagged",
+            "nullable": true
+          },
+          "Version": {
+            "type": "string",
+            "description": "From PKGBUILD `pkgver`-`pkgrel`"
+          },
+          "URLPath": {
+            "type": "string",
+            "description": "Path to gzipped snapshot",
+            "nullable": true
+          },
+          "URL": {
+            "type": "string",
+            "description": "From PKGBUILD `url`",
+            "nullable": true
+          },
+          "arg": {
+            "type": "string",
+            "description": "The search term/argument that was used"
+          }
+        }
+      },
       "ErrorResult": {
         "type": "object",
         "allOf": [
@@ -450,7 +1023,7 @@
       }
     },
     "parameters": {
-      "SearchBy": {
+      "SearchByV5": {
         "name": "by",
         "description": "The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used.   \nFor ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.\n",
         "in": "query",
@@ -473,7 +1046,33 @@
           "default": "name-desc"
         }
       },
-      "Term": {
+      "SearchByV6": {
+        "name": "by",
+        "description": "The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used   \nFor ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.\n",
+        "in": "query",
+        "schema": {
+          "description": "List of package properties that can be used for Package search. Note that for \"name\" and \"name-desc\" it will perform a \"contains\" search. Other options require the exact package-name or keyword",
+          "type": "string",
+          "enum": [
+            "name",
+            "name-desc",
+            "depends",
+            "checkdepends",
+            "optdepends",
+            "makedepends",
+            "maintainer",
+            "submitter",
+            "provides",
+            "conflicts",
+            "replaces",
+            "keywords",
+            "groups",
+            "comaintainers"
+          ],
+          "default": "name-desc"
+        }
+      },
+      "TermV5": {
         "name": "arg",
         "description": "Provide your search-term in the ***{arg}*** parameter.\n",
         "in": "query",
@@ -482,12 +1081,42 @@
         },
         "required": true
       },
-      "TermPath": {
+      "TermPathV5": {
         "name": "arg",
         "description": "Provide your search-term in the ***{arg}*** parameter.\n",
         "in": "path",
         "schema": {
           "type": "string"
+        },
+        "required": true
+      },
+      "TermPathV6": {
+        "name": "arg",
+        "description": "Provide your search-term in the ***{arg}*** parameter.\n\nYou can provide multiple words in the ***{arg}*** parameter.  \nIn that case all words have to be contained in the ***by*** field of a record.  \n(only makes sense with name/description lookups...)\n",
+        "in": "path",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "TermV6": {
+        "name": "arg",
+        "description": "Use the ***{arg}*** parameter to specifcy your search-term.\n\nYou can provide multiple words in the ***{arg}*** parameter.  \nIn that case all words have to be contained in the ***by*** field of a record.  \n(only makes sense with name/description lookups...)\n",
+        "in": "path",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "Terms": {
+        "name": "arg[]",
+        "description": "The ***{arg[]}*** parameter allows to specify one or more search-terms so that you can run multiple queries in just one API call.\n\nYou can provide multiple words in a single ***{arg[]}*** parameter.  \nIn that case all words have to be contained in the ***by*** field of a record.  \n(only makes sense with name/description lookups...)\n",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "required": true
       },
@@ -514,18 +1143,21 @@
       }
     },
     "requestBodies": {
-      "SearchBody": {
+      "SearchBodyV6": {
         "content": {
           "application/x-www-form-urlencoded": {
             "schema": {
               "type": "object",
               "properties": {
-                "arg": {
-                  "description": "Provide your search-term in the ***{arg}*** parameter.\n",
-                  "type": "string"
+                "arg[]": {
+                  "description": "The ***{arg[]}*** parameter allows to specify one or more search-terms so that you can run multiple queries in just one API call.\n\nYou can provide multiple words in a single ***{arg[]}*** parameter.  \nIn that case all words have to be contained in the ***by*** field of a record.  \n(only makes sense with name/description lookups...)\n",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 },
                 "by": {
-                  "description": "The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used.   \nFor ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.\n",
+                  "description": "The ***by*** parameter let's you define the field that is used in the search query. If not defined, ***name-desc*** is used   \nFor ***name*** and ***name-desc*** a *contains*-like lookup is performed whereas all other fields require an exact value.\n",
                   "type": "string",
                   "enum": [
                     "name",
@@ -537,7 +1169,6 @@
                     "maintainer",
                     "provides",
                     "conflicts",
-                    "replaces",
                     "keywords",
                     "groups"
                   ],
@@ -545,8 +1176,14 @@
                 }
               },
               "required": [
-                "arg"
+                "arg[]"
               ]
+            },
+            "encoding": {
+              "arg[]": {
+                "style": "form",
+                "explode": true
+              }
             }
           }
         }

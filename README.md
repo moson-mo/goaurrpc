@@ -31,7 +31,6 @@ If this parameter is not passed, the default config will be used (sample.conf co
 	"MaxResults": 5000,
 	"RefreshInterval": 300,
 	"RateLimit": 4000,
-	"LoadFromFile": false,
 	"RateLimitCleanupInterval": 600,
 	"RateLimitTimeWindow": 86400,
 	"TrustedReverseProxies": [
@@ -46,7 +45,8 @@ If this parameter is not passed, the default config will be used (sample.conf co
 	"CacheExpirationTime": 180,
 	"EnableMetrics": true,
 	"EnableAdminApi": false,
-	"AdminAPIKey": "change-me"
+	"AdminAPIKey": "change-me",
+	"MaxArgsStringComparison": 10
 }
 ```
 
@@ -57,7 +57,6 @@ If this parameter is not passed, the default config will be used (sample.conf co
 | MaxResults | The maximum number of package results that are being returned to the client |
 | RefreshInterval | The interval (in seconds) in which the metadata file is being reloaded |
 | RateLimit | The maximum number of requests that are allowed within the time-window |
-| LoadFromFile | Set to true when using a local file instead of a URL for `AurFileLocation` |
 | RateLimitCleanupInterval | The interval (in seconds) in which rate-limits are being cleaned up |
 | RateLimitTimeWindow | Defines the length of the time window for rate-limiting (in seconds) |
 | Trusted reverse proxies | A list of trusted IP-Addresses, in case you use a reverse proxy and need to rely on `X-Real-IP` or `X-Forwarded-For` headers to identify a client (for rate-limiting) |
@@ -70,6 +69,7 @@ If this parameter is not passed, the default config will be used (sample.conf co
 | EnableMetrics | Enables Prometheus metrics at /metrics |
 | EnableAdminApi | Enables the administrative endpoint at /admin |
 | AdminAPIKey | The API Key that is to be provided in the header for the /admin endpoint |
+| MaxArgsStringComparison | The maximum number of arguments that are allowed for a search-query when searching by "name" or "name-desc" |
 
 ### Public endpoint
 
@@ -79,10 +79,4 @@ Feel free to make use of the following public instance of goaurrpc:
 
 ### Future plans / ideas
 
-- Extend request types (see [rpc-v6](https://github.com/moson-mo/goaurrpc/tree/rpc-v6))
-- Admin REST-API to be able to control goaurrpc at runtime, for example:
-  - reload data
-  - get statistics (memory consumption, rate limits, etc.)
-  - manage rate-limits
-  - manage search-cache
 - CLI/TUI tool for administration (making use of the admin api)

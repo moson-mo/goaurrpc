@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"strings"
 	"sync"
 	"time"
 
@@ -76,7 +77,7 @@ func (s *server) reloadData() error {
 	var ptr *db.MemoryDB
 	var lastRefresh time.Time
 	var err error
-	if s.settings.LoadFromFile {
+	if !strings.HasPrefix(s.settings.AurFileLocation, "http") {
 		ptr, lastRefresh, err = db.LoadDbFromFile(s.settings.AurFileLocation, s.lastRefresh)
 		if err != nil {
 			return err

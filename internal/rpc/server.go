@@ -127,9 +127,10 @@ func (s *server) setupRoutes() {
 	s.router.HandleFunc("/rpc.php/", s.rpcHandler) // deprecated
 	s.router.HandleFunc("/rpc/stats", s.rpcStatsHandler)
 
-	// v5 with url paths
+	// v5/6 with url paths
 	s.router.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
 	s.router.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
+	s.router.HandleFunc("/rpc/v{version}", s.rpcHandler)
 
 	// metrics
 	if s.settings.EnableMetrics {
@@ -167,24 +168,13 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	ip := getRealIP(r, s.settings.TrustedReverseProxies)
 	s.LogVeryVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
-	// check if we got a GET or POST request
-	var values url.Values
-	if r.Method == "GET" {
-		values = r.URL.Query()
-	} else {
-		r.ParseForm()
-		values = r.PostForm
+	// get values for requests (type, by, arguments)
+	values := composeRequestValues(r)
+	if values.Get("arg[]") != "" {
+		values["arg[]"] = UniqueStrings(values["arg[]"])
 	}
-
-	// override query string if we have path variables
-	vars := mux.Vars(r)
-	if len(vars) > 0 {
-		values.Set("v", vars["version"])
-		values.Set("type", vars["type"])
-		if vars["name"] != "" {
-			values.Set("arg", vars["name"])
-		}
-	}
+	version, _ := strconv.Atoi(values.Get("v"))
+	callback := values.Get("callback")
 
 	// get API parameters
 	t := values.Get("type")
@@ -192,8 +182,6 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	if by == "" {
 		by = "name-desc"
 	}
-	v := values.Get("v")
-	version, _ := strconv.Atoi(v)
 	c := values.Get("callback")
 
 	// rate limit check
@@ -213,13 +201,13 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate query parameters
-	err := validateQueryString(values)
+	err := validateValues(values, s.settings.MaxArgsStringComparison)
 	if err != nil {
 		if errors.Is(err, ErrCallBack) {
 			writeError(200, err.Error(), version, "", w)
 			return
 		}
-		writeError(200, err.Error(), version, c, w)
+		writeError(200, err.Error(), version, callback, w)
 		return
 	}
 
@@ -243,18 +231,16 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// handle info / search calls
 	result := RpcResult{}
-	cache := false
 	s.mut.RLock()
 	switch t {
 	case "info", "multiinfo":
 		result = s.rpcInfo(values)
-	case "search", "msearch":
-		result, cache = s.rpcSearch(values)
+	case "search", "msearch", "search-info":
+		result = s.rpcSearch(values)
 	}
 	s.mut.RUnlock()
 
 	// don't return data if we exceed max number of results
-	result.Resultcount = len(result.Results)
 	if result.Resultcount > s.settings.MaxResults {
 		result.Error = "Too many package results."
 		result.Resultcount = 0
@@ -262,16 +248,37 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		result.Type = "error"
 	}
 
-	// add to search cache
-	if cache {
-		s.addToCache(result, values.Encode())
-	}
-
 	// set version number
 	result.Version = null.NewInt(int64(version), version != 0)
 
 	// return JSON to client
 	writeResult(&result, c, w)
+}
+
+// composes request values from different sources
+func composeRequestValues(r *http.Request) url.Values {
+	// check if got a GET or POST request
+	var values url.Values
+	if r.Method == "GET" {
+		values = r.URL.Query()
+	} else {
+		r.ParseForm()
+		values = r.PostForm
+	}
+
+	// get values from url path
+	vars := mux.Vars(r)
+	if len(vars) > 0 {
+		values.Set("v", vars["version"])
+		if vars["type"] != "" {
+			values.Set("type", vars["type"])
+		}
+		if vars["name"] != "" {
+			values.Set("arg", vars["name"])
+		}
+	}
+
+	return values
 }
 
 // check if rate limit is reached. Create / update the record.
@@ -299,14 +306,4 @@ func (s *server) isRateLimited(ip string) bool {
 		}
 	}
 	return false
-}
-
-// add search results to cache.
-func (s *server) addToCache(result RpcResult, key string) {
-	if !s.settings.EnableSearchCache {
-		return
-	}
-	s.mutCache.Lock()
-	defer s.mutCache.Unlock()
-	s.searchCache[key] = CacheEntry{Result: result, TimeAdded: time.Now()}
 }

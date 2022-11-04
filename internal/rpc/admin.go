@@ -262,6 +262,23 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 			return
 		}
 		sendAdminOk("Current setting for 'EnableSearchCache' is '"+pval+"'", w)
+	case "max-args-string-comparison":
+		pval := strconv.Itoa(s.settings.MaxArgsStringComparison)
+		if isPost {
+			if value != "" {
+				ival, err := convValueToInt(value)
+				if err != nil {
+					sendAdminError(err.Error(), w)
+					return
+				}
+				s.settings.MaxArgsStringComparison = ival
+				sendAdminOk("Changed 'MaxArgsStringComparison' from '"+pval+"' to '"+value+"'", w)
+			} else {
+				sendAdminError("Need new value: ?value=...", w)
+			}
+			return
+		}
+		sendAdminOk("Current setting for 'MaxArgsStringComparison' is '"+pval+"'", w)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Setting not found"))
