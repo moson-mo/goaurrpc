@@ -151,11 +151,11 @@ func (db *MemoryDB) fillHelperVars() {
 		}
 		// keywords
 		for _, ref := range pkg.Keywords {
-			sref := "key-" + stripRef(ref)
+			sref := "key-" + strings.ToLower(stripRef(ref))
 			db.References[sref] = append(db.References[sref], db.PackageSlice[i])
 		}
 		// maintainer
-		maintainer := "m-" + pkg.Maintainer
+		maintainer := "m-" + strings.ToLower(pkg.Maintainer)
 		db.References[maintainer] = append(db.References[maintainer], db.PackageSlice[i])
 	}
 
