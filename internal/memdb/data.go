@@ -24,6 +24,7 @@ type PackageInfo struct {
 	Popularity     float64  `json:"Popularity"`
 	OutOfDate      int      `json:"OutOfDate"`
 	Maintainer     string   `json:"Maintainer"`
+	Submitter      string   `json:"Submitter"`
 	FirstSubmitted int      `json:"FirstSubmitted"`
 	LastModified   int      `json:"LastModified"`
 	URLPath        string   `json:"URLPath"`
@@ -37,6 +38,7 @@ type PackageInfo struct {
 	CheckDepends   []string `json:"CheckDepends"`
 	Replaces       []string `json:"Replaces"`
 	Groups         []string `json:"Groups"`
+	CoMaintainers  []string `json:"CoMaintainers"`
 }
 
 type PackageDescription struct {

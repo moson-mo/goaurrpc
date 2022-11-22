@@ -157,6 +157,14 @@ func (db *MemoryDB) fillHelperVars() {
 		// maintainer
 		maintainer := "m-" + strings.ToLower(pkg.Maintainer)
 		db.References[maintainer] = append(db.References[maintainer], db.PackageSlice[i])
+		// submitter
+		submitter := "s-" + strings.ToLower(pkg.Submitter)
+		db.References[submitter] = append(db.References[submitter], db.PackageSlice[i])
+		// comaintainers
+		for _, com := range pkg.CoMaintainers {
+			com = "com-" + strings.ToLower(com)
+			db.References[com] = append(db.References[com], db.PackageSlice[i])
+		}
 	}
 
 	for _, base := range distinctStringSlice(baseNames) {

@@ -17,6 +17,7 @@ type RpcResult struct {
 
 // InfoRecord is a data structure for "search" API calls (results)
 type InfoRecord struct {
+	CoMaintainers  []string    `json:"CoMaintainers,omitempty"`
 	CheckDepends   []string    `json:"CheckDepends,omitempty"`
 	Conflicts      []string    `json:"Conflicts,omitempty"`
 	Depends        []string    `json:"Depends,omitempty"`
@@ -38,6 +39,7 @@ type InfoRecord struct {
 	Popularity     float64     `json:"Popularity"`
 	Provides       []string    `json:"Provides,omitempty"`
 	Replaces       []string    `json:"Replaces,omitempty"`
+	Submitter      string      `json:"Submitter,omitempty"`
 	URL            null.String `json:"URL"`
 	URLPath        null.String `json:"URLPath"`
 	Version        string      `json:"Version"`

@@ -31,6 +31,7 @@ var queryBy = []string{
 	"name",
 	"name-desc",
 	"maintainer",
+	"submitter",
 	"depends",
 	"makedepends",
 	"optdepends",
@@ -40,6 +41,7 @@ var queryBy = []string{
 	"replaces",
 	"keywords",
 	"groups",
+	"comaintainers",
 }
 
 var ErrCallBack = errors.New("Invalid callback name.")
@@ -196,6 +198,7 @@ func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
 		Popularity:     dbp.Popularity,
 		OutOfDate:      null.NewInt(int64(dbp.OutOfDate), dbp.OutOfDate != 0),
 		Maintainer:     null.NewString(dbp.Maintainer, dbp.Maintainer != ""),
+		Submitter:      dbp.Submitter,
 		FirstSubmitted: dbp.FirstSubmitted,
 		LastModified:   dbp.LastModified,
 		URLPath:        null.NewString(dbp.URLPath, dbp.URLPath != ""),
@@ -209,6 +212,7 @@ func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
 		CheckDepends:   dbp.CheckDepends,
 		Replaces:       dbp.Replaces,
 		Groups:         dbp.Groups,
+		CoMaintainers:  dbp.CoMaintainers,
 	}
 	/*
 		for some reason Keywords and License should be returned

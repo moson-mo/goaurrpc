@@ -230,14 +230,6 @@
                   "allOf": [
                     {
                       "$ref": "#/components/schemas/PackageBasic"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "term": {
-                          "type": "string"
-                        }
-                      }
                     }
                   ]
                 }
@@ -274,6 +266,9 @@
           },
           {
             "properties": {
+              "Submitter": {
+                "type": "string"
+              },
               "License": {
                 "type": "array",
                 "items": {
@@ -343,6 +338,12 @@
                   "type": "string"
                 },
                 "description": "From PKGBUILD `keywords`"
+              },
+              "CoMaintainers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -464,11 +465,13 @@
             "optdepends",
             "makedepends",
             "maintainer",
+            "submitter",
             "provides",
             "conflicts",
             "replaces",
             "keywords",
-            "groups"
+            "groups",
+            "comaintainers"
           ],
           "default": "name-desc"
         }
@@ -535,11 +538,13 @@
                     "optdepends",
                     "makedepends",
                     "maintainer",
+                    "submitter",
                     "provides",
                     "conflicts",
                     "replaces",
                     "keywords",
-                    "groups"
+                    "groups",
+                    "comaintainers"
                   ],
                   "default": "name-desc"
                 }

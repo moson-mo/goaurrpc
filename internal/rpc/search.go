@@ -26,6 +26,12 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 				found = append(found, *pkg)
 			}
 		}
+	case "submitter":
+		if pkgs, f := s.memDB.References["s-"+arg]; f {
+			for _, pkg := range pkgs {
+				found = append(found, *pkg)
+			}
+		}
 	case "depends":
 		if pkgs, f := s.memDB.References["dep-"+arg]; f {
 			for _, pkg := range pkgs {
@@ -79,6 +85,12 @@ func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 		}
 	case "groups":
 		if pkgs, f := s.memDB.References["grp-"+arg]; f {
+			for _, pkg := range pkgs {
+				found = append(found, *pkg)
+			}
+		}
+	case "comaintainers":
+		if pkgs, f := s.memDB.References["com-"+arg]; f {
 			for _, pkg := range pkgs {
 				found = append(found, *pkg)
 			}
