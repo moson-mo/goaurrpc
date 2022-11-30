@@ -14,6 +14,7 @@ type Settings struct {
 	MaxResults               int
 	RefreshInterval          int // in seconds
 	RateLimit                int
+	LoadFromFile             bool
 	RateLimitCleanupInterval int // in seconds
 	RateLimitTimeWindow      int // in seconds
 	TrustedReverseProxies    []string
@@ -27,7 +28,6 @@ type Settings struct {
 	EnableMetrics            bool
 	EnableAdminApi           bool
 	AdminAPIKey              string
-	MaxArgsStringComparison  int
 }
 
 // DefaultSettings returns the default settings for our server
@@ -38,6 +38,7 @@ func DefaultSettings() *Settings {
 		MaxResults:               5000,
 		RefreshInterval:          5 * 60, // refresh every 5 minutes
 		RateLimit:                4000,
+		LoadFromFile:             false,
 		RateLimitCleanupInterval: 10 * 60,
 		RateLimitTimeWindow:      24 * 60 * 60,
 		TrustedReverseProxies:    []string{"127.0.0.1", "::1"},
@@ -48,7 +49,6 @@ func DefaultSettings() *Settings {
 		EnableMetrics:            true,
 		EnableAdminApi:           false,
 		AdminAPIKey:              "change-me",
-		MaxArgsStringComparison:  10,
 	}
 	return &s
 }
@@ -93,8 +93,6 @@ func validateSettings(s Settings) error {
 		return errors.New("config: CacheCleanupInterval" + errZero)
 	case s.CacheExpirationTime:
 		return errors.New("config: CacheExpirationTime" + errZero)
-	case s.MaxArgsStringComparison:
-		return errors.New("config: MaxArgsStringComparison" + errZero)
 	}
 
 	return nil

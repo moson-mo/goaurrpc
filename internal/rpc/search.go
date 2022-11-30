@@ -7,9 +7,8 @@ import (
 )
 
 // searches and returns found packages from our DB
-func (s *server) search(arg, by string, isV6 bool) ([]db.PackageInfo, bool) {
+func (s *server) search(arg, by string) ([]db.PackageInfo, bool) {
 	found := []db.PackageInfo{}
-	terms := strings.Split(arg, " ")
 	cache := false
 
 	// perform search according to the "by" parameter
@@ -17,19 +16,18 @@ func (s *server) search(arg, by string, isV6 bool) ([]db.PackageInfo, bool) {
 	case "name":
 		cache = true
 		for _, name := range s.memDB.PackageNames {
-			f := true
-			for _, term := range terms {
-				if !strings.Contains(name, term) {
-					f = false
-					break
-				}
-			}
-			if f {
+			if strings.Contains(name, arg) {
 				found = append(found, *s.memDB.PackageMap[name])
 			}
 		}
 	case "maintainer":
 		if pkgs, f := s.memDB.References["m-"+arg]; f {
+			for _, pkg := range pkgs {
+				found = append(found, *pkg)
+			}
+		}
+	case "submitter":
+		if pkgs, f := s.memDB.References["s-"+arg]; f {
 			for _, pkg := range pkgs {
 				found = append(found, *pkg)
 			}
@@ -91,12 +89,6 @@ func (s *server) search(arg, by string, isV6 bool) ([]db.PackageInfo, bool) {
 				found = append(found, *pkg)
 			}
 		}
-	case "submitter":
-		if pkgs, f := s.memDB.References["sub-"+arg]; f {
-			for _, pkg := range pkgs {
-				found = append(found, *pkg)
-			}
-		}
 	case "comaintainers":
 		if pkgs, f := s.memDB.References["com-"+arg]; f {
 			for _, pkg := range pkgs {
@@ -106,22 +98,9 @@ func (s *server) search(arg, by string, isV6 bool) ([]db.PackageInfo, bool) {
 	default:
 		cache = true
 		for _, pkg := range s.memDB.PackageDescriptions {
-			f := true
-			for _, term := range terms {
-				if !strings.Contains(pkg.Name, term) && !strings.Contains(pkg.Description, term) {
-					f = false
-					break
-				}
-			}
-			if f {
+			if strings.Contains(pkg.Name, arg) || strings.Contains(pkg.Description, arg) {
 				found = append(found, *s.memDB.PackageMap[pkg.Name])
 			}
-		}
-	}
-
-	if isV6 {
-		for i := 0; i < len(found); i++ {
-			found[i].Arg = arg
 		}
 	}
 

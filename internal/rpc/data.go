@@ -3,7 +3,6 @@ package rpc
 import (
 	"time"
 
-	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"gopkg.in/guregu/null.v4"
 )
 
@@ -18,14 +17,14 @@ type RpcResult struct {
 
 // InfoRecord is a data structure for "search" API calls (results)
 type InfoRecord struct {
-	CheckDepends   []string    `json:"CheckDepends,omitempty"`
 	CoMaintainers  []string    `json:"CoMaintainers,omitempty"`
+	CheckDepends   []string    `json:"CheckDepends,omitempty"`
 	Conflicts      []string    `json:"Conflicts,omitempty"`
 	Depends        []string    `json:"Depends,omitempty"`
 	Description    null.String `json:"Description"`
 	FirstSubmitted int         `json:"FirstSubmitted"`
 	Groups         []string    `json:"Groups,omitempty"`
-	ID             int         `json:"ID,omitempty"`
+	ID             int         `json:"ID"`
 	Keywords       []string    `json:"Keywords"`
 	LastModified   int         `json:"LastModified"`
 	License        []string    `json:"License"`
@@ -36,7 +35,7 @@ type InfoRecord struct {
 	OptDepends     []string    `json:"OptDepends,omitempty"`
 	OutOfDate      null.Int    `json:"OutOfDate"`
 	PackageBase    string      `json:"PackageBase"`
-	PackageBaseID  int         `json:"PackageBaseID,omitempty"`
+	PackageBaseID  int         `json:"PackageBaseID"`
 	Popularity     float64     `json:"Popularity"`
 	Provides       []string    `json:"Provides,omitempty"`
 	Replaces       []string    `json:"Replaces,omitempty"`
@@ -44,26 +43,24 @@ type InfoRecord struct {
 	URL            null.String `json:"URL"`
 	URLPath        null.String `json:"URLPath"`
 	Version        string      `json:"Version"`
-	Arg            string      `json:"arg,omitempty"`
 }
 
 // SearchRecord is a data structure for "info" API calls (results)
 type SearchRecord struct {
 	Description    null.String `json:"Description"`
 	FirstSubmitted int         `json:"FirstSubmitted"`
-	ID             int         `json:"ID,omitempty"`
+	ID             int         `json:"ID"`
 	LastModified   int         `json:"LastModified"`
 	Maintainer     null.String `json:"Maintainer"`
 	Name           string      `json:"Name"`
 	NumVotes       int         `json:"NumVotes"`
 	OutOfDate      null.Int    `json:"OutOfDate"`
 	PackageBase    string      `json:"PackageBase"`
-	PackageBaseID  int         `json:"PackageBaseID,omitempty"`
+	PackageBaseID  int         `json:"PackageBaseID"`
 	Popularity     float64     `json:"Popularity"`
 	URL            null.String `json:"URL"`
 	URLPath        null.String `json:"URLPath"`
 	Version        string      `json:"Version"`
-	Arg            string      `json:"arg,omitempty"`
 }
 
 // RateLimit holds data for the rate limit checking
@@ -73,7 +70,6 @@ type RateLimit struct {
 }
 
 type CacheEntry struct {
-	Entry       []db.PackageInfo
-	TimeAdded   time.Time
-	ResultCount int
+	Result    RpcResult
+	TimeAdded time.Time
 }

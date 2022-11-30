@@ -57,9 +57,5 @@ func TestValidateSettings(t *testing.T) {
 
 	s.CacheExpirationTime = 1
 	err = validateSettings(s)
-	assert.NotNil(t, err)
-
-	s.MaxArgsStringComparison = 1
-	err = validateSettings(s)
 	assert.Nil(t, err)
 }

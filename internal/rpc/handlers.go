@@ -3,9 +3,7 @@ package rpc
 import (
 	"net/url"
 	"strings"
-	"time"
 
-	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"github.com/moson-mo/goaurrpc/internal/metrics"
 )
 
@@ -16,11 +14,10 @@ func (s *server) rpcInfo(values url.Values) RpcResult {
 	}
 
 	packages := getArgumentList(values)
-	isV6 := values.Get("v") == "6"
 
 	for _, p := range packages {
 		if dbp, ok := s.memDB.PackageMap[p]; ok {
-			rr.Results = append(rr.Results, convDbPkgToInfoRecord(dbp, isV6))
+			rr.Results = append(rr.Results, convDbPkgToInfoRecord(dbp))
 			rr.Resultcount++
 		}
 	}
@@ -28,76 +25,35 @@ func (s *server) rpcInfo(values url.Values) RpcResult {
 }
 
 // construct result for "search" calls
-func (s *server) rpcSearch(values url.Values) RpcResult {
+func (s *server) rpcSearch(values url.Values) (RpcResult, bool) {
 	rr := RpcResult{
 		Type: values.Get("type"),
 	}
 
+	// get from search cache
+	key := values.Encode()
+	if s.settings.EnableSearchCache {
+		s.mutCache.RLock()
+		res, found := s.searchCache[key]
+		s.mutCache.RUnlock()
+		if found {
+			// update cache hits metric
+			metrics.CacheHits.Inc()
+
+			return res.Result, false
+		}
+	}
+
+	// search
 	by := getBy(values)
-	foundAll := map[string][]db.PackageInfo{}
-	search := getArgumentList(values)
-	version := values.Get("v")
-	isV6 := version == "6"
-	isSearchType := (rr.Type == "search" || rr.Type == "msearch")
+	arg := getArgument(values)
+	found, cache := s.search(arg, by)
 
-	// maintainer search
-	if len(search) == 0 && by == "maintainer" {
-		search = append(search, "")
+	for _, pkg := range found {
+		rr.Results = append(rr.Results, convDbPkgToSearchRecord(&pkg))
 	}
 
-	for _, arg := range search {
-		cacheKey := version + "-" + by + "-" + arg
-
-		// check in cache
-		if s.settings.EnableSearchCache {
-			s.mutCache.RLock()
-			res, f := s.searchCache[cacheKey]
-			s.mutCache.RUnlock()
-			if f {
-				// update cache hits metric
-				metrics.CacheHits.Inc()
-
-				foundAll[arg] = res.Entry
-				rr.Resultcount += res.ResultCount
-				if (rr.Resultcount) > s.settings.MaxResults {
-					return rr
-				}
-				continue
-			}
-		}
-
-		// search for packages
-		found, cache := s.search(arg, by, isV6)
-		lenFound := len(found)
-		rr.Resultcount += lenFound
-
-		if lenFound < s.settings.MaxResults {
-			foundAll[arg] = found
-			if cache {
-				s.addToCache(found, cacheKey, lenFound)
-			}
-
-		} else if cache {
-			s.addToCache(nil, cacheKey, lenFound)
-		}
-		if (rr.Resultcount) > s.settings.MaxResults {
-			return rr
-		}
-
-	}
-
-	// Convert to Search- or InfoResult based on version and type
-	for _, arg := range search {
-		for _, pkg := range foundAll[arg] {
-			if !isV6 || isSearchType {
-				rr.Results = append(rr.Results, convDbPkgToSearchRecord(&pkg, isV6))
-			} else {
-				rr.Results = append(rr.Results, convDbPkgToInfoRecord(&pkg, isV6))
-			}
-		}
-	}
-
-	return rr
+	return rr, cache
 }
 
 // construct result for "suggest" calls
@@ -129,14 +85,4 @@ func (s *server) rpcSuggest(values url.Values, pkgBase bool) []string {
 		}
 	}
 	return found
-}
-
-// add search results to cache. Don't store if exceeding max limit
-func (s *server) addToCache(packages []db.PackageInfo, key string, resultCount int) {
-	if !s.settings.EnableSearchCache {
-		return
-	}
-	s.mutCache.Lock()
-	defer s.mutCache.Unlock()
-	s.searchCache[key] = CacheEntry{Entry: packages, TimeAdded: time.Now(), ResultCount: resultCount}
 }

@@ -20,7 +20,6 @@ var queryTypes = []string{
 	"info",
 	"multiinfo",
 	"search",
-	"search-info",
 	"msearch",
 	"suggest",
 	"suggest-pkgbase",
@@ -48,34 +47,31 @@ var queryBy = []string{
 var ErrCallBack = errors.New("Invalid callback name.")
 
 // Checking the validity of the query parameters
-func validateValues(values url.Values, maxStringComp int) error {
+func validateQueryString(values url.Values) error {
 	_, hasArg := values["arg"]
-	multiArgs, hasArgArr := values["arg[]"]
-	v := values.Get("v")
-	t := values.Get("type")
-	by := values.Get("by")
+	_, hasArgArr := values["arg[]"]
 
 	if values.Get("v") == "" {
 		return errors.New("Please specify an API version.")
 	}
-	if v != "5" && v != "6" {
+	if values.Get("v") != "5" {
 		return errors.New("Invalid version specified.")
 	}
-	if t == "" {
+	if values.Get("type") == "" {
 		return errors.New("No request type/data specified.")
 	}
-	if !inSlice(queryTypes, t) {
+	if !inSlice(queryTypes, values.Get("type")) {
 		return errors.New("Incorrect request type specified.")
 	}
-	if !inSlice(queryBy, by) {
+	if !inSlice(queryBy, values.Get("by")) {
 		return errors.New("Incorrect by field specified.")
 	}
-	if !hasArg && !hasArgArr && by != "maintainer" {
+	if !hasArg && !hasArgArr && values.Get("by") != "maintainer" {
 		return errors.New("No request type/data specified.")
 	}
 	if ((hasArg && len(values.Get("arg")) < 2) || (hasArgArr && len(values.Get("arg[]")) < 2)) &&
-		strings.HasPrefix(t, "search") &&
-		by != "maintainer" {
+		strings.HasPrefix(values.Get("type"), "search") &&
+		values.Get("by") != "maintainer" {
 		return errors.New("Query arg too small.")
 	}
 	if values.Get("callback") != "" {
@@ -83,11 +79,6 @@ func validateValues(values url.Values, maxStringComp int) error {
 		if !match {
 			return ErrCallBack
 		}
-	}
-	if strings.Contains(t, "search") &&
-		(by == "" || strings.HasPrefix(by, "name")) &&
-		len(multiArgs) > maxStringComp {
-		return errors.New("Exceeded maximum number of arguments for search query")
 	}
 
 	return nil
@@ -152,7 +143,6 @@ func writeResult(result *RpcResult, callback string, w http.ResponseWriter) {
 	if result.Resultcount == 0 {
 		result.Results = make([]interface{}, 0)
 	}
-
 	b, _ := json.Marshal(result)
 
 	sendResult(200, callback, b, w)
@@ -195,9 +185,11 @@ func getRealIP(r *http.Request, trustedProxies []string) string {
 }
 
 // converts db.PackageInfo to rpc.InfoRecord
-func convDbPkgToInfoRecord(dbp *db.PackageInfo, isV6 bool) InfoRecord {
+func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
 	ir := InfoRecord{
+		ID:             dbp.ID,
 		Name:           dbp.Name,
+		PackageBaseID:  dbp.PackageBaseID,
 		PackageBase:    dbp.PackageBase,
 		Version:        dbp.Version,
 		Description:    null.NewString(dbp.Description, dbp.Description != ""),
@@ -221,7 +213,6 @@ func convDbPkgToInfoRecord(dbp *db.PackageInfo, isV6 bool) InfoRecord {
 		Replaces:       dbp.Replaces,
 		Groups:         dbp.Groups,
 		CoMaintainers:  dbp.CoMaintainers,
-		Arg:            dbp.Arg,
 	}
 	/*
 		for some reason Keywords and License should be returned
@@ -234,20 +225,14 @@ func convDbPkgToInfoRecord(dbp *db.PackageInfo, isV6 bool) InfoRecord {
 		ir.License = []string{}
 	}
 
-	if !isV6 {
-		ir.ID = dbp.ID
-		ir.PackageBaseID = dbp.PackageBaseID
-		ir.Arg = ""
-		ir.Submitter = ""
-		ir.CoMaintainers = nil
-	}
-
 	return ir
 }
 
 // converts db.PackageInfo to rpc.SearchRecord
-func convDbPkgToSearchRecord(dbp *db.PackageInfo, isV6 bool) SearchRecord {
+func convDbPkgToSearchRecord(dbp *db.PackageInfo) SearchRecord {
 	sr := SearchRecord{
+		ID:             dbp.ID,
+		PackageBaseID:  dbp.PackageBaseID,
 		Description:    null.NewString(dbp.Description, dbp.Description != ""),
 		FirstSubmitted: dbp.FirstSubmitted,
 		LastModified:   dbp.LastModified,
@@ -260,13 +245,6 @@ func convDbPkgToSearchRecord(dbp *db.PackageInfo, isV6 bool) SearchRecord {
 		URL:            null.NewString(dbp.URL, dbp.URL != ""),
 		URLPath:        null.NewString(dbp.URLPath, dbp.URLPath != ""),
 		Version:        dbp.Version,
-		Arg:            dbp.Arg,
-	}
-
-	if !isV6 {
-		sr.ID = dbp.ID
-		sr.PackageBaseID = dbp.PackageBaseID
-		sr.Arg = ""
 	}
 
 	return sr
@@ -279,16 +257,4 @@ func inSlice(s []string, e string) bool {
 		}
 	}
 	return false
-}
-
-func UniqueStrings(strSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range strSlice {
-		if _, found := keys[entry]; !found {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
 }
