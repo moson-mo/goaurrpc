@@ -1,0 +1,695 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "AUR Metadata API",
+    "description": "### The metadata REST-API provides endpoints to fetch package metadata\nThree types of queries are supported:\n\n- **Search** -> Search for packages\n- **Info** -> Lookup information for packages (exact keyword)\n- **Suggest** -> Search for package names (max. 20 results)\n",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "Search"
+    },
+    {
+      "name": "Info"
+    },
+    {
+      "name": "Suggest"
+    }
+  ],
+  "paths": {
+    "/api/v6/search/{arg}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ArgPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "description": "### Search for packages with a single argument in name and description\n",
+        "summary": "Single-arg search",
+        "responses": {
+          "200": {
+            "description": "Search response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/search/{by}/{arg}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ByPathSearch"
+        },
+        {
+          "$ref": "#/components/parameters/ArgPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "description": "### Search for packages with a single argument\n",
+        "summary": "Single-arg search",
+        "responses": {
+          "200": {
+            "description": "Search response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/search/{by}/{mode}/{arg}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ByPathSearch"
+        },
+        {
+          "$ref": "#/components/parameters/ModePath"
+        },
+        {
+          "$ref": "#/components/parameters/ArgPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "description": "### Search for packages with a single argument\n",
+        "summary": "Single-arg search",
+        "responses": {
+          "200": {
+            "description": "Search response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/suggest/{arg}": {
+      "get": {
+        "tags": [
+          "Suggest"
+        ],
+        "description": "### Returns a list of package-names starting with {arg}\n#### *(max 20 results)*\n",
+        "summary": "Package name search (starts-with)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ArgPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageNames"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/suggest-pkgbase/{arg}": {
+      "get": {
+        "tags": [
+          "Suggest"
+        ],
+        "description": "### Returns a list of package-base-names starting with {arg}\n#### *(max 20 results)*\n",
+        "summary": "Package base search (starts-with)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ArgPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageNames"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/info/{arg}": {
+      "get": {
+        "tags": [
+          "Info"
+        ],
+        "description": "### Get data for a single package by name\n",
+        "summary": "Single package lookup",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Pkgname"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Info response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/info/{by}/{arg}": {
+      "get": {
+        "tags": [
+          "Info"
+        ],
+        "description": "### Get data for packages based on a field (by parameter)\n",
+        "summary": "Single keyword lookup",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ByPathInfo"
+          },
+          {
+            "$ref": "#/components/parameters/Keyword"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Info response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/info": {
+      "get": {
+        "tags": [
+          "Info"
+        ],
+        "description": "### Get data for multiple packages\n",
+        "summary": "Multi package/keyword lookup",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ByQueryInfo"
+          },
+          {
+            "$ref": "#/components/parameters/Keywords"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Info response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Info"
+        ],
+        "description": "### Get data for multiple packages based on a field (by parameter)\n",
+        "summary": "Multi package/keyword lookup",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/InfoBody"
+        },
+        "responses": {
+          "200": {
+            "description": "Info response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PackageNames": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "PackageData": {
+        "description": "Package information",
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "description": "From PKGBUILD `pkgname`"
+          },
+          "Description": {
+            "type": "string",
+            "description": "From PKGBUILD `pkgdesc`"
+          },
+          "Version": {
+            "type": "string",
+            "description": "From PKGBUILD `pkgver`-`pkgrel`"
+          },
+          "PackageBase": {
+            "type": "string"
+          },
+          "URL": {
+            "type": "string",
+            "description": "From PKGBUILD `url`"
+          },
+          "URLPath": {
+            "type": "string",
+            "description": "Path to gzipped snapshot"
+          },
+          "Maintainer": {
+            "type": "string"
+          },
+          "Submitter": {
+            "type": "string"
+          },
+          "FirstSubmitted": {
+            "type": "integer",
+            "description": "UNIX timestamp"
+          },
+          "LastModified": {
+            "type": "integer",
+            "description": "UNIX timestamp"
+          },
+          "OutOfDate": {
+            "type": "string",
+            "description": "UNIX timestamp, or null if not flagged"
+          },
+          "NumVotes": {
+            "type": "integer"
+          },
+          "Popularity": {
+            "type": "number"
+          },
+          "License": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `license`"
+          },
+          "Depends": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `depends`"
+          },
+          "MakeDepends": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `makedepends`"
+          },
+          "OptDepends": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `optdepends`"
+          },
+          "CheckDepends": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `checkdepends`"
+          },
+          "Provides": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `provides`"
+          },
+          "Conflicts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `conflicts`"
+          },
+          "Replaces": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `replaces`"
+          },
+          "Groups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `groups`"
+          },
+          "Keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "From PKGBUILD `keywords`"
+          },
+          "CoMaintainers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ErrorResult": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseResult"
+          },
+          {
+            "properties": {
+              "error": {
+                "type": "string",
+                "description": "Error message"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                },
+                "default": []
+              }
+            }
+          }
+        ]
+      },
+      "BaseResult": {
+        "properties": {
+          "resultcount": {
+            "type": "integer",
+            "description": "Number of search results"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of API call"
+          },
+          "version": {
+            "type": "integer",
+            "description": "API Version"
+          }
+        }
+      },
+      "SuccessResult": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseResult"
+          },
+          {
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PackageData"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "parameters": {
+      "ArgPath": {
+        "name": "arg",
+        "description": "Provide your search-term(s) in the ***{arg}*** parameter.  \nNote that you can provide multiple (space separated) keywords.  \nIn that case, all words need to be found for a match.\n",
+        "in": "path",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "ByPathSearch": {
+        "name": "by",
+        "description": "The ***by*** parameter let's you define the field that is used in the search query.\n",
+        "in": "path",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "name",
+            "name-desc"
+          ]
+        },
+        "required": true
+      },
+      "ByPathInfo": {
+        "name": "by",
+        "description": "The ***by*** parameter let's you define the field that is used in the lookup query.\n",
+        "in": "path",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "name",
+            "depends",
+            "checkdepends",
+            "optdepends",
+            "makedepends",
+            "maintainer",
+            "submitter",
+            "provides",
+            "conflicts",
+            "replaces",
+            "keywords",
+            "groups",
+            "comaintainers"
+          ]
+        },
+        "required": true
+      },
+      "ByQueryInfo": {
+        "name": "by",
+        "description": "The ***by*** parameter let's you define the field that is used in the lookup query.\n",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "name",
+            "depends",
+            "checkdepends",
+            "optdepends",
+            "makedepends",
+            "maintainer",
+            "submitter",
+            "provides",
+            "conflicts",
+            "replaces",
+            "keywords",
+            "groups",
+            "comaintainers"
+          ],
+          "default": "name"
+        }
+      },
+      "ModePath": {
+        "name": "mode",
+        "description": "The ***mode*** parameter let's you define how records are matched.\n",
+        "in": "path",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "contains",
+            "starts-with"
+          ]
+        },
+        "required": true
+      },
+      "Pkgname": {
+        "name": "arg",
+        "description": "Provide a package name in the ***{arg}*** parameter.\n",
+        "in": "path",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "Keyword": {
+        "name": "arg",
+        "description": "Provide a keyword in the ***{arg}*** parameter.\n",
+        "in": "path",
+        "schema": {
+          "type": "string"
+        },
+        "required": true
+      },
+      "Keywords": {
+        "name": "arg",
+        "description": "Provide one or more keywords in the ***{arg}*** parameter.\n",
+        "in": "query",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required": true
+      }
+    },
+    "requestBodies": {
+      "InfoBody": {
+        "content": {
+          "application/x-www-form-urlencoded": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "by": {
+                  "description": "The ***by*** parameter let's you define the field that is used in the lookup query.\n",
+                  "type": "string",
+                  "enum": [
+                    "name",
+                    "depends",
+                    "checkdepends",
+                    "optdepends",
+                    "makedepends",
+                    "maintainer",
+                    "submitter",
+                    "provides",
+                    "conflicts",
+                    "replaces",
+                    "keywords",
+                    "groups",
+                    "comaintainers"
+                  ]
+                },
+                "arg": {
+                  "description": "Provide one or more keywords in the ***{arg}*** parameter.\n",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "arg"
+              ]
+            },
+            "encoding": {
+              "arg": {
+                "style": "form",
+                "explode": true
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -9,6 +9,9 @@ import (
 //go:embed openapi_rpc.json
 var openApiRpc []byte
 
+//go:embed openapi_api.json
+var openApiApi []byte
+
 //go:embed openapi_admin.json
 var openApiAdmin []byte
 
@@ -47,6 +50,12 @@ func SwaggerRpcHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, swaggerUi, "rpc")
 }
 
+// SwaggerApiHandler handles calls to the swagger-ui of /api
+func SwaggerApiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
+	fmt.Fprintf(w, swaggerUi, "api")
+}
+
 // SwaggerAdminHandler handles calls to the swagger-ui of /admin
 func SwaggerAdminHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
@@ -56,6 +65,11 @@ func SwaggerAdminHandler(w http.ResponseWriter, r *http.Request) {
 // SpecRpcHandler handles calls to the openapi spec for /rpc
 func SpecRpcHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(openApiRpc)
+}
+
+// SpecApiHandler handles calls to the openapi spec for /api
+func SpecApiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write(openApiApi)
 }
 
 // SpecAdminHandler handles calls to the openapi spec for /admin

@@ -45,6 +45,34 @@ type InfoRecord struct {
 	Version        string      `json:"Version"`
 }
 
+// PackageData is a data structure for v6 API calls (results)
+type PackageData struct {
+	Name           string   `json:"Name,omitempty"`
+	Description    string   `json:"Description,omitempty"`
+	Version        string   `json:"Version,omitempty"`
+	PackageBase    string   `json:"PackageBase,omitempty"`
+	URL            string   `json:"URL,omitempty"`
+	URLPath        string   `json:"URLPath,omitempty"`
+	Maintainer     string   `json:"Maintainer,omitempty"`
+	Submitter      string   `json:"Submitter,omitempty"`
+	FirstSubmitted int      `json:"FirstSubmitted,omitempty"`
+	LastModified   int      `json:"LastModified,omitempty"`
+	OutOfDate      int      `json:"OutOfDate,omitempty"`
+	NumVotes       int      `json:"NumVotes,omitempty"`
+	Popularity     float64  `json:"Popularity,omitempty"`
+	License        []string `json:"License,omitempty"`
+	Depends        []string `json:"Depends,omitempty"`
+	MakeDepends    []string `json:"MakeDepends,omitempty"`
+	OptDepends     []string `json:"OptDepends,omitempty"`
+	CheckDepends   []string `json:"CheckDepends,omitempty"`
+	Provides       []string `json:"Provides,omitempty"`
+	Conflicts      []string `json:"Conflicts,omitempty"`
+	Replaces       []string `json:"Replaces,omitempty"`
+	Groups         []string `json:"Groups,omitempty"`
+	Keywords       []string `json:"Keywords,omitempty"`
+	CoMaintainers  []string `json:"CoMaintainers,omitempty"`
+}
+
 // SearchRecord is a data structure for "info" API calls (results)
 type SearchRecord struct {
 	Description    null.String `json:"Description"`

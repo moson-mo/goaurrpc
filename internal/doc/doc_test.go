@@ -13,10 +13,13 @@ import (
 var testUrls = []string{
 	"/rpc/swagger",
 	"/rpc/swagger/",
+	"/api/swagger",
+	"/api/swagger/",
 	"/admin/swagger",
 	"/admin/swagger/",
 	"/nonsense/swagger/",
 	"/rpc/swagger/openapi.json",
+	"/api/swagger/openapi.json",
 	"/admin/swagger/openapi.json",
 	"/rpc/olddoc.html",
 }
@@ -27,9 +30,12 @@ func TestSwagger(t *testing.T) {
 
 	r.HandleFunc("/rpc/swagger", SwaggerRpcHandler)
 	r.HandleFunc("/rpc/swagger/", SwaggerRpcHandler)
+	r.HandleFunc("/api/swagger", SwaggerApiHandler)
+	r.HandleFunc("/api/swagger/", SwaggerApiHandler)
 	r.HandleFunc("/admin/swagger", SwaggerAdminHandler)
 	r.HandleFunc("/admin/swagger/", SwaggerAdminHandler)
 	r.HandleFunc("/rpc/swagger/openapi.json", SpecRpcHandler)
+	r.HandleFunc("/api/swagger/openapi.json", SpecApiHandler)
 	r.HandleFunc("/admin/swagger/openapi.json", SpecAdminHandler)
 	r.HandleFunc("/rpc/olddoc.html", SpecOldHandler)
 

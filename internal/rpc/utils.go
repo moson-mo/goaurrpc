@@ -44,38 +44,55 @@ var queryBy = []string{
 	"comaintainers",
 }
 
+// allowed "mode" values
+var queryMode = []string{
+	"",
+	"contains",
+	"starts-with",
+}
+
 var ErrCallBack = errors.New("Invalid callback name.")
 
 // Checking the validity of the query parameters
-func validateQueryString(values url.Values) error {
-	_, hasArg := values["arg"]
-	_, hasArgArr := values["arg[]"]
+func validateParameters(params url.Values) error {
+	arg, hasArg := params["arg"]
+	_, hasArgArr := params["arg[]"]
+	v := params.Get("v")
+	t := params.Get("type")
+	by := params.Get("by")
+	m := params.Get("mode")
 
-	if values.Get("v") == "" {
+	if v == "" {
 		return errors.New("Please specify an API version.")
 	}
-	if values.Get("v") != "5" {
+	if v != "5" && v != "6" {
 		return errors.New("Invalid version specified.")
 	}
-	if values.Get("type") == "" {
+	if strings.ToLower(t) == "" {
 		return errors.New("No request type/data specified.")
 	}
-	if !inSlice(queryTypes, values.Get("type")) {
+	if !inSlice(queryTypes, t) {
 		return errors.New("Incorrect request type specified.")
 	}
-	if !inSlice(queryBy, values.Get("by")) {
+	if !inSlice(queryBy, by) {
 		return errors.New("Incorrect by field specified.")
 	}
-	if !hasArg && !hasArgArr && values.Get("by") != "maintainer" {
+	if !inSlice(queryMode, m) {
+		return errors.New("Incorrect mode specified.")
+	}
+	if v == "6" && len(arg) == 0 {
+		return errors.New("No request data specified.")
+	}
+	if !hasArg && !hasArgArr && by != "maintainer" {
 		return errors.New("No request type/data specified.")
 	}
-	if ((hasArg && len(values.Get("arg")) < 2) || (hasArgArr && len(values.Get("arg[]")) < 2)) &&
-		strings.HasPrefix(values.Get("type"), "search") &&
-		values.Get("by") != "maintainer" {
+	if ((hasArg && len(params.Get("arg")) < 2) || (hasArgArr && len(params.Get("arg[]")) < 2)) &&
+		strings.HasPrefix(t, "search") &&
+		by != "maintainer" {
 		return errors.New("Query arg too small.")
 	}
-	if values.Get("callback") != "" {
-		match, _ := regexp.MatchString("^[a-zA-Z0-9()_.]{1,128}$", values.Get("callback"))
+	if params.Get("callback") != "" {
+		match, _ := regexp.MatchString("^[a-zA-Z0-9()_.]{1,128}$", params.Get("callback"))
 		if !match {
 			return ErrCallBack
 		}
@@ -85,12 +102,19 @@ func validateQueryString(values url.Values) error {
 }
 
 // get a string slice with all arguments that have been passed
-func getArgumentList(values url.Values) []string {
+func getArgsList(params url.Values) []string {
 	var args []string
-	if values.Get("arg") != "" {
-		args = append(args, strings.ToLower(values.Get("arg")))
+
+	if params.Get("v") == "6" {
+		for _, arg := range params["arg"] {
+			args = append(args, strings.ToLower(arg))
+		}
+		return args
+	}
+	if params.Get("arg") != "" {
+		args = append(args, strings.ToLower(params.Get("arg")))
 	} else {
-		for _, arg := range values["arg[]"] {
+		for _, arg := range params["arg[]"] {
 			args = append(args, strings.ToLower(arg))
 		}
 	}
@@ -98,25 +122,31 @@ func getArgumentList(values url.Values) []string {
 }
 
 // get a single argument
-func getArgument(values url.Values) string {
-	if values.Get("arg") != "" {
-		return strings.ToLower(values.Get("arg"))
+func getArg(params url.Values) string {
+	if params.Get("arg") != "" {
+		return strings.ToLower(params.Get("arg"))
 	}
-	return strings.ToLower(values.Get("arg[]"))
+	return strings.ToLower(params.Get("arg[]"))
 }
 
 // get search "by" parameter
-func getBy(values url.Values) string {
+func getBy(params url.Values) string {
 	// if not specified use name and description for search
 	by := "name-desc"
-	if values.Get("by") != "" {
-		by = values.Get("by")
+	if params.Get("by") != "" {
+		by = params.Get("by")
+	}
+
+	// in case we did not get a by parameter with an info call, set name as by
+	if params.Get("type") == "info" && params.Get("by") == "" {
+		by = "name"
 	}
 
 	// if type is msearch we search by maintainer
-	if values.Get("type") == "msearch" {
+	if params.Get("type") == "msearch" {
 		by = "maintainer"
 	}
+
 	return by
 }
 
@@ -216,13 +246,45 @@ func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
 	}
 	/*
 		for some reason Keywords and License should be returned
-		as empty JSON arrays rather than being omitted
+		as empty JSON arrays rather than being "null"
 	*/
 	if ir.Keywords == nil {
 		ir.Keywords = []string{}
 	}
 	if ir.License == nil {
 		ir.License = []string{}
+	}
+
+	return ir
+}
+
+// converts db.PackageInfo to rpc.PackageData
+func convDbPkgToPackageData(dbp *db.PackageInfo) PackageData {
+	ir := PackageData{
+		Name:           dbp.Name,
+		PackageBase:    dbp.PackageBase,
+		Version:        dbp.Version,
+		Description:    dbp.Description,
+		URL:            dbp.URL,
+		NumVotes:       dbp.NumVotes,
+		Popularity:     dbp.Popularity,
+		OutOfDate:      dbp.OutOfDate,
+		Maintainer:     dbp.Maintainer,
+		Submitter:      dbp.Submitter,
+		FirstSubmitted: dbp.FirstSubmitted,
+		LastModified:   dbp.LastModified,
+		URLPath:        dbp.URLPath,
+		MakeDepends:    dbp.MakeDepends,
+		License:        dbp.License,
+		Depends:        dbp.Depends,
+		Conflicts:      dbp.Conflicts,
+		Provides:       dbp.Provides,
+		Keywords:       dbp.Keywords,
+		OptDepends:     dbp.OptDepends,
+		CheckDepends:   dbp.CheckDepends,
+		Replaces:       dbp.Replaces,
+		Groups:         dbp.Groups,
+		CoMaintainers:  dbp.CoMaintainers,
 	}
 
 	return ir

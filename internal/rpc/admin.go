@@ -12,12 +12,12 @@ import (
 )
 
 // middleware for authentication (API key)
-func (s *server) rpcAdminMiddleware(hf http.HandlerFunc) http.Handler {
+func (s *server) adminMiddleware(hf http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := r.Header.Get("APIKey")
 
 		// check api key
-		if key != s.settings.AdminAPIKey {
+		if key != s.conf.AdminAPIKey {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized"))
 			return
@@ -28,7 +28,7 @@ func (s *server) rpcAdminMiddleware(hf http.HandlerFunc) http.Handler {
 }
 
 // handles jobs
-func (s *server) rpcAdminJobsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleAdminJobs(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
 
@@ -63,7 +63,7 @@ func (s *server) rpcAdminJobsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // handles settings
-func (s *server) rpcAdminSettingsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleAdminSettings(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := strings.ToLower(vars["name"])
 	isPost := r.Method == "POST"
@@ -71,7 +71,7 @@ func (s *server) rpcAdminSettingsHandler(w http.ResponseWriter, r *http.Request)
 
 	// update and return settings in JSON format
 	if strings.TrimRight(r.URL.Path, "/") == "/admin/settings" && !isPost {
-		sendSettings(s.settings, w)
+		sendSettings(s.conf, w)
 		return
 	}
 
@@ -111,10 +111,10 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 	// get/set individual option
 	switch name {
 	case "aur-file-location":
-		pval := s.settings.AurFileLocation
+		pval := s.conf.AurFileLocation
 		if isPost {
 			if value != "" {
-				s.settings.AurFileLocation = value
+				s.conf.AurFileLocation = value
 				sendAdminOk("Changed 'AurFileLocation' from '"+pval+"' to '"+value+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
@@ -123,7 +123,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'AurFileLocation' is '"+pval+"'", w)
 	case "max-results":
-		pval := strconv.Itoa(s.settings.MaxResults)
+		pval := strconv.Itoa(s.conf.MaxResults)
 		if isPost {
 			if value != "" {
 				ival, err := convValueToInt(value)
@@ -131,7 +131,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.MaxResults = ival
+				s.conf.MaxResults = ival
 				sendAdminOk("Changed 'MaxResults' from '"+pval+"' to '"+value+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
@@ -140,7 +140,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'MaxResults' is '"+pval+"'", w)
 	case "refresh-interval":
-		pval := strconv.Itoa(s.settings.RefreshInterval)
+		pval := strconv.Itoa(s.conf.RefreshInterval)
 		if isPost {
 			if value != "" {
 				ival, err := convValueToInt(value)
@@ -148,7 +148,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.RefreshInterval = ival
+				s.conf.RefreshInterval = ival
 				sendAdminOk("Changed 'RefreshInterval' from '"+pval+"' to '"+value+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
@@ -157,7 +157,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'RefreshInterval' is '"+pval+"'", w)
 	case "rate-limit":
-		pval := strconv.Itoa(s.settings.RateLimit)
+		pval := strconv.Itoa(s.conf.RateLimit)
 		if isPost {
 			if value != "" {
 				ival, err := strconv.Atoi(value)
@@ -165,7 +165,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.RateLimit = ival
+				s.conf.RateLimit = ival
 				warning := ""
 				if ival == 0 {
 					warning = "\nWARNING: Rate limit is disabled"
@@ -178,7 +178,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'RateLimit' is '"+pval+"'", w)
 	case "rate-limit-cleanup-interval":
-		pval := strconv.Itoa(s.settings.RateLimitCleanupInterval)
+		pval := strconv.Itoa(s.conf.RateLimitCleanupInterval)
 		if isPost {
 			if value != "" {
 				ival, err := convValueToInt(value)
@@ -186,7 +186,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.RateLimitCleanupInterval = ival
+				s.conf.RateLimitCleanupInterval = ival
 				sendAdminOk("Changed 'RateLimitCleanupInterval' from '"+pval+"' to '"+value+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
@@ -195,7 +195,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'RateLimitCleanupInterval' is '"+pval+"'", w)
 	case "rate-limit-time-window":
-		pval := strconv.Itoa(s.settings.RateLimitTimeWindow)
+		pval := strconv.Itoa(s.conf.RateLimitTimeWindow)
 		if isPost {
 			if value != "" {
 				ival, err := convValueToInt(value)
@@ -203,7 +203,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.RateLimitTimeWindow = ival
+				s.conf.RateLimitTimeWindow = ival
 				sendAdminOk("Changed 'RateLimitTimeWindow' from '"+pval+"' to '"+value+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
@@ -212,7 +212,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'RateLimitTimeWindow' is '"+pval+"'", w)
 	case "cache-cleanup-interval":
-		pval := strconv.Itoa(s.settings.CacheCleanupInterval)
+		pval := strconv.Itoa(s.conf.CacheCleanupInterval)
 		if isPost {
 			if value != "" {
 				ival, err := convValueToInt(value)
@@ -220,7 +220,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.CacheCleanupInterval = ival
+				s.conf.CacheCleanupInterval = ival
 				sendAdminOk("Changed 'CacheCleanupInterval' from '"+pval+"' to '"+value+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
@@ -229,7 +229,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'CacheCleanupInterval' is '"+pval+"'", w)
 	case "cache-expiration-time":
-		pval := strconv.Itoa(s.settings.CacheExpirationTime)
+		pval := strconv.Itoa(s.conf.CacheExpirationTime)
 		if isPost {
 			if value != "" {
 				ival, err := convValueToInt(value)
@@ -237,7 +237,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.CacheExpirationTime = ival
+				s.conf.CacheExpirationTime = ival
 				sendAdminOk("Changed 'CacheExpirationTime' from '"+pval+"' to '"+value+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
@@ -246,7 +246,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'CacheExpirationTime' is '"+pval+"'", w)
 	case "enable-search-cache":
-		pval := strconv.FormatBool(s.settings.EnableSearchCache)
+		pval := strconv.FormatBool(s.conf.EnableSearchCache)
 		if isPost {
 			if value != "" {
 				bval, err := strconv.ParseBool(value)
@@ -254,8 +254,8 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 					sendAdminError(err.Error(), w)
 					return
 				}
-				s.settings.EnableSearchCache = bval
-				sendAdminOk("Changed 'EnableSearchCache' from '"+pval+"' to '"+strconv.FormatBool(s.settings.EnableSearchCache)+"'", w)
+				s.conf.EnableSearchCache = bval
+				sendAdminOk("Changed 'EnableSearchCache' from '"+pval+"' to '"+strconv.FormatBool(s.conf.EnableSearchCache)+"'", w)
 			} else {
 				sendAdminError("Need new value: ?value=...", w)
 			}

@@ -20,7 +20,7 @@ func (s *server) startJobs(shutdown chan struct{}, wg *sync.WaitGroup) {
 			case <-shutdown:
 				s.LogVerbose("Stopping routine: Data refresh")
 				return
-			case <-time.After(time.Duration(s.settings.RefreshInterval) * time.Second):
+			case <-time.After(time.Duration(s.conf.RefreshInterval) * time.Second):
 				s.Log("Reloading package data...")
 				start := time.Now()
 				err := s.reloadData()
@@ -46,7 +46,7 @@ func (s *server) startJobs(shutdown chan struct{}, wg *sync.WaitGroup) {
 			case <-shutdown:
 				s.LogVerbose("Stopping routine: Rate-Limit cleanup")
 				return
-			case <-time.After(time.Duration(s.settings.RateLimitCleanupInterval) * time.Second):
+			case <-time.After(time.Duration(s.conf.RateLimitCleanupInterval) * time.Second):
 				s.cleanupRateLimits()
 			}
 		}
@@ -60,7 +60,7 @@ func (s *server) startJobs(shutdown chan struct{}, wg *sync.WaitGroup) {
 			case <-shutdown:
 				s.LogVerbose("Stopping routine: Search-Cache cleanup")
 				return
-			case <-time.After(time.Duration(s.settings.CacheCleanupInterval) * time.Second):
+			case <-time.After(time.Duration(s.conf.CacheCleanupInterval) * time.Second):
 				s.cleanupSearchCache()
 			}
 		}
@@ -76,13 +76,13 @@ func (s *server) reloadData() error {
 	var ptr *db.MemoryDB
 	var lastRefresh time.Time
 	var err error
-	if s.settings.LoadFromFile {
-		ptr, lastRefresh, err = db.LoadDbFromFile(s.settings.AurFileLocation, s.lastRefresh)
+	if s.conf.LoadFromFile {
+		ptr, lastRefresh, err = db.LoadDbFromFile(s.conf.AurFileLocation, s.lastRefresh)
 		if err != nil {
 			return err
 		}
 	} else {
-		ptr, lastRefresh, err = db.LoadDbFromUrl(s.settings.AurFileLocation, s.lastRefresh)
+		ptr, lastRefresh, err = db.LoadDbFromUrl(s.conf.AurFileLocation, s.lastRefresh)
 		if err != nil {
 			return err
 		}
@@ -101,7 +101,7 @@ func (s *server) cleanupRateLimits() {
 	defer s.mutLimit.Unlock()
 	t := time.Now()
 	for ip, rl := range s.rateLimits {
-		if t.Sub(rl.WindowStart) > time.Duration(s.settings.RateLimitTimeWindow)*time.Second {
+		if t.Sub(rl.WindowStart) > time.Duration(s.conf.RateLimitTimeWindow)*time.Second {
 			delete(s.rateLimits, ip)
 			s.LogVeryVerbose("Removed rate limit for", ip)
 		}
@@ -114,7 +114,7 @@ func (s *server) cleanupSearchCache() {
 	defer s.mutCache.Unlock()
 	t := time.Now()
 	for k, ce := range s.searchCache {
-		if t.Sub(ce.TimeAdded) > time.Duration(s.settings.CacheExpirationTime)*time.Second {
+		if t.Sub(ce.TimeAdded) > time.Duration(s.conf.CacheExpirationTime)*time.Second {
 			delete(s.searchCache, k)
 			s.LogVeryVerbose("Removed cache entry for", k)
 		}

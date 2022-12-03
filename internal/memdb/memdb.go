@@ -90,9 +90,9 @@ func (db *MemoryDB) fillHelperVars() {
 	db.PackageNames = make([]string, 0, n)
 	db.PackageDescriptions = make([]PackageDescription, 0, n)
 	db.References = map[string][]*PackageInfo{}
-	baseNames := []string{}
 	db.SuggestNames = map[byte][]string{}
 	db.SuggestBases = map[byte][]string{}
+	baseNames := []string{}
 
 	sort.Slice(db.PackageSlice, func(i, j int) bool {
 		return db.PackageSlice[i].Name < db.PackageSlice[j].Name

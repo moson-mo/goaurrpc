@@ -30,7 +30,7 @@ type server struct {
 	mut         sync.RWMutex
 	mutLimit    sync.RWMutex
 	mutCache    sync.RWMutex
-	settings    config.Settings
+	conf        config.Settings
 	stop        chan os.Signal
 	rateLimits  map[string]RateLimit
 	searchCache map[string]CacheEntry
@@ -65,7 +65,7 @@ func New(settings config.Settings, verbose, vverbose bool, version string) (*ser
 
 	signal.Notify(s.stop, os.Interrupt)
 
-	s.settings = settings
+	s.conf = settings
 
 	// load data
 	s.Log("Loading package data...")
@@ -90,7 +90,7 @@ func (s *server) Listen() error {
 	s.setupRoutes()
 
 	srv := http.Server{
-		Addr:    ":" + strconv.Itoa(s.settings.Port),
+		Addr:    ":" + strconv.Itoa(s.conf.Port),
 		Handler: s.router,
 	}
 
@@ -105,8 +105,8 @@ func (s *server) Listen() error {
 	}()
 
 	// Listen for requests
-	if s.settings.EnableSSL {
-		return srv.ListenAndServeTLS(s.settings.CertFile, s.settings.KeyFile)
+	if s.conf.EnableSSL {
+		return srv.ListenAndServeTLS(s.conf.CertFile, s.conf.KeyFile)
 	}
 	return srv.ListenAndServe()
 }
@@ -121,80 +121,76 @@ func (s *server) setupRoutes() {
 	// routes
 	s.router = mux.NewRouter()
 
-	s.router.HandleFunc("/rpc", s.rpcHandler)
-	s.router.HandleFunc("/rpc/", s.rpcHandler)
-	s.router.HandleFunc("/rpc.php", s.rpcHandler)  // deprecated
-	s.router.HandleFunc("/rpc.php/", s.rpcHandler) // deprecated
-	s.router.HandleFunc("/rpc/stats", s.rpcStatsHandler)
+	s.router.HandleFunc("/rpc", s.handleRequest)
+	s.router.HandleFunc("/rpc/", s.handleRequest)
+	s.router.HandleFunc("/rpc.php", s.handleRequest)  // deprecated
+	s.router.HandleFunc("/rpc.php/", s.handleRequest) // deprecated
+	s.router.HandleFunc("/rpc/stats", s.handleStats)
 
 	// v5 with url paths
-	s.router.HandleFunc("/rpc/v{version}/{type}/{name}", s.rpcHandler)
-	s.router.HandleFunc("/rpc/v{version}/{type}", s.rpcHandler)
+	s.router.HandleFunc("/rpc/v{version}/{type}/{arg}", s.handleRequest)
+	s.router.HandleFunc("/rpc/v{version}/{type}", s.handleRequest)
+
+	// v6
+	s.router.HandleFunc("/api", s.handleRequest)
+	s.router.HandleFunc("/api/", s.handleRequest)
+	s.router.HandleFunc("/api/v{version}/{type}/{by}/{mode}/{arg}", s.handleRequest)
+	s.router.HandleFunc("/api/v{version}/{type}/{by}/{arg}", s.handleRequest)
+	s.router.HandleFunc("/api/v{version}/{type}/{arg}", s.handleRequest)
+	s.router.HandleFunc("/api/v{version}/{type}", s.handleRequest)
 
 	// metrics
-	if s.settings.EnableMetrics {
+	if s.conf.EnableMetrics {
 		metrics.RegisterMetrics()
 		s.router.Handle("/metrics", promhttp.Handler())
 	}
 
 	// admin api
-	if s.settings.EnableAdminApi {
-		s.router.Handle("/admin/run-job/{name}", s.rpcAdminMiddleware(s.rpcAdminJobsHandler)).Methods("POST")
-		s.router.Handle("/admin/settings/{name}", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
-		s.router.Handle("/admin/settings", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
-		s.router.Handle("/admin/settings/", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
+	if s.conf.EnableAdminApi {
+		s.router.Handle("/admin/run-job/{name}", s.adminMiddleware(s.handleAdminJobs)).Methods("POST")
+		s.router.Handle("/admin/settings/{name}", s.adminMiddleware(s.handleAdminSettings)).Methods("POST", "GET")
+		s.router.Handle("/admin/settings", s.adminMiddleware(s.handleAdminSettings)).Methods("POST", "GET")
+		s.router.Handle("/admin/settings/", s.adminMiddleware(s.handleAdminSettings)).Methods("POST", "GET")
 	}
 
 	// swagger
 	s.router.HandleFunc("/rpc/swagger", doc.SwaggerRpcHandler)
 	s.router.HandleFunc("/rpc/swagger/", doc.SwaggerRpcHandler)
-	if s.settings.EnableAdminApi {
+	s.router.HandleFunc("/api/swagger", doc.SwaggerApiHandler)
+	s.router.HandleFunc("/api/swagger/", doc.SwaggerApiHandler)
+	if s.conf.EnableAdminApi {
 		s.router.HandleFunc("/admin/swagger", doc.SwaggerAdminHandler)
 		s.router.HandleFunc("/admin/swagger/", doc.SwaggerAdminHandler)
 	}
 	s.router.HandleFunc("/rpc/openapi.json", doc.SpecRpcHandler)
+	s.router.HandleFunc("/api/openapi.json", doc.SpecApiHandler)
 	s.router.HandleFunc("/admin/openapi.json", doc.SpecAdminHandler)
 	s.router.HandleFunc("/rpc/olddoc.html", doc.SpecOldHandler)
 }
 
 // handles client connections
-func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// response time metrics
 	timer := prometheus.NewTimer(metrics.HttpDuration.WithLabelValues())
 	defer timer.ObserveDuration()
 
 	// get clients IP address
-	ip := getRealIP(r, s.settings.TrustedReverseProxies)
+	ip := getRealIP(r, s.conf.TrustedReverseProxies)
 	s.LogVeryVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
 
-	// check if we got a GET or POST request
-	var values url.Values
-	if r.Method == "GET" {
-		values = r.URL.Query()
-	} else {
-		r.ParseForm()
-		values = r.PostForm
-	}
-
-	// override query string if we have path variables
-	vars := mux.Vars(r)
-	if len(vars) > 0 {
-		values.Set("v", vars["version"])
-		values.Set("type", vars["type"])
-		if vars["name"] != "" {
-			values.Set("arg", vars["name"])
-		}
-	}
-
 	// get API parameters
-	t := values.Get("type")
-	by := values.Get("by")
-	if by == "" {
-		by = "name-desc"
-	}
-	v := values.Get("v")
-	version, _ := strconv.Atoi(v)
-	c := values.Get("callback")
+	params := s.composeParameters(r)
+
+	rtype := params.Get("type")
+	by := getBy(params)
+	version := params.Get("v")
+	verInt, _ := strconv.Atoi(version)
+	callback := params.Get("callback")
+	mode := params.Get("mode")
+	arg := getArg(params)
+	args := getArgsList(params)
+	isV6 := verInt == 6
+	cacheKey := params.Encode()
 
 	// rate limit check
 	if s.isRateLimited(ip) {
@@ -202,34 +198,38 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 		metrics.RateLimited.Inc()
 
 		s.LogVerbose("Client reached rate limit:", ip, "-", "User-Agent:", r.UserAgent())
-		writeError(429, "Rate limit reached", version, "", w)
+		writeError(429, "Rate limit reached", verInt, "", w)
 		return
 	}
 
-	// if we don't get any query parameters, return documentation
-	if len(values) == 0 {
-		http.Redirect(w, r, "/rpc/swagger", http.StatusFound)
+	// if we don't get any parameters, return documentation
+	if len(params) == 0 {
+		http.Redirect(w, r, r.URL.Path+"/swagger", http.StatusFound)
 		return
 	}
 
-	// validate query parameters
-	err := validateQueryString(values)
+	// validate our parameters
+	err := validateParameters(params)
+	errCode := 200
+	if isV6 {
+		errCode = 400
+	}
 	if err != nil {
 		if errors.Is(err, ErrCallBack) {
-			writeError(200, err.Error(), version, "", w)
+			writeError(errCode, err.Error(), verInt, "", w)
 			return
 		}
-		writeError(200, err.Error(), version, c, w)
+		writeError(errCode, err.Error(), verInt, callback, w)
 		return
 	}
 
 	// update requests metric
-	metrics.Requests.WithLabelValues(r.Method, t, by).Inc()
+	metrics.Requests.WithLabelValues(r.Method, rtype, by).Inc()
 
 	// handle suggest calls
-	if t == "suggest" || t == "suggest-pkgbase" {
+	if rtype == "suggest" || rtype == "suggest-pkgbase" {
 		s.mut.RLock()
-		b, err := json.Marshal(s.rpcSuggest(values, (t == "suggest-pkgbase")))
+		b, err := json.Marshal(s.getSuggestResult(arg, (rtype == "suggest-pkgbase")))
 		s.mut.RUnlock()
 		if err != nil {
 			w.WriteHeader(500)
@@ -245,17 +245,16 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	result := RpcResult{}
 	cache := false
 	s.mut.RLock()
-	switch t {
+	switch rtype {
 	case "info", "multiinfo":
-		result = s.rpcInfo(values)
+		result = s.getInfoResult(by, args, isV6)
 	case "search", "msearch":
-		result, cache = s.rpcSearch(values)
+		result, cache = s.getSearchResult(rtype, by, mode, arg, cacheKey, isV6)
 	}
 	s.mut.RUnlock()
 
 	// don't return data if we exceed max number of results
-	result.Resultcount = len(result.Results)
-	if result.Resultcount > s.settings.MaxResults {
+	if result.Resultcount > s.conf.MaxResults {
 		result.Error = "Too many package results."
 		result.Resultcount = 0
 		result.Results = nil
@@ -264,14 +263,44 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 
 	// add to search cache
 	if cache {
-		s.addToCache(result, values.Encode())
+		s.addToCache(result, params.Encode())
 	}
 
 	// set version number
-	result.Version = null.NewInt(int64(version), version != 0)
+	result.Version = null.NewInt(int64(verInt), verInt != 0)
 
 	// return JSON to client
-	writeResult(&result, c, w)
+	writeResult(&result, callback, w)
+}
+
+// get API parameters from url query/form or path
+func (s *server) composeParameters(r *http.Request) url.Values {
+	// check if we got a GET or POST request
+	var params url.Values
+	if r.Method == "GET" {
+		params = r.URL.Query()
+	} else {
+		r.ParseForm()
+		params = r.PostForm
+	}
+
+	// set parameters from path variables
+	vars := mux.Vars(r)
+	if len(vars) > 0 {
+		params.Set("v", vars["version"])
+		params.Set("type", vars["type"])
+		if vars["by"] != "" {
+			params.Set("by", vars["by"])
+		}
+		if vars["mode"] != "" {
+			params.Set("mode", vars["mode"])
+		}
+		if vars["arg"] != "" {
+			params.Set("arg", vars["arg"])
+		}
+	}
+
+	return params
 }
 
 // check if rate limit is reached. Create / update the record.
@@ -280,7 +309,7 @@ func (s *server) isRateLimited(ip string) bool {
 	defer s.mutLimit.Unlock()
 
 	// RateLimit of 0 -> Skip check
-	if s.settings.RateLimit == 0 {
+	if s.conf.RateLimit == 0 {
 		return false
 	}
 
@@ -288,7 +317,7 @@ func (s *server) isRateLimited(ip string) bool {
 	if ok {
 		la.Requests++
 		s.rateLimits[ip] = la
-		if la.Requests > s.settings.RateLimit {
+		if la.Requests > s.conf.RateLimit {
 			return true
 		}
 	} else {
@@ -303,7 +332,7 @@ func (s *server) isRateLimited(ip string) bool {
 
 // add search results to cache.
 func (s *server) addToCache(result RpcResult, key string) {
-	if !s.settings.EnableSearchCache {
+	if !s.conf.EnableSearchCache {
 		return
 	}
 	s.mutCache.Lock()
