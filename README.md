@@ -1,5 +1,5 @@
 # goaurrpc
-[![Release](https://img.shields.io/github/v/release/moson-mo/goaurrpc)](https://github.com/moson-mo/goaurrpc/releases) [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/moson-mo/goaurrpc/Go)](https://github.com/moson-mo/goaurrpc/actions) [![Coverage](https://img.shields.io/badge/Coverage-98.2%25-brightgreen)](https://github.com/moson-mo/goaurrpc/blob/main/test_coverage.out) [![Go Report Card](https://goreportcard.com/badge/github.com/moson-mo/goaurrpc)](https://goreportcard.com/report/github.com/moson-mo/goaurrpc)
+[![Release](https://img.shields.io/github/v/release/moson-mo/goaurrpc)](https://github.com/moson-mo/goaurrpc/releases) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/moson-mo/goaurrpc/go.yml?branch=main)](https://github.com/moson-mo/goaurrpc/actions) [![Coverage](https://img.shields.io/badge/Coverage-98.2%25-brightgreen)](https://github.com/moson-mo/goaurrpc/blob/main/test_coverage.out) [![Go Report Card](https://goreportcard.com/badge/github.com/moson-mo/goaurrpc)](https://goreportcard.com/report/github.com/moson-mo/goaurrpc)
 
 ### An implementation of the [aurweb](https://gitlab.archlinux.org/archlinux/aurweb) (v6) - /rpc - REST API service in go
 
