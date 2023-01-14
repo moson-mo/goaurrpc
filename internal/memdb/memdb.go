@@ -2,13 +2,14 @@ package memdb
 
 import (
 	"compress/gzip"
-	"encoding/json"
 	"errors"
 	"io"
 	"os"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/goccy/go-json"
 
 	"github.com/moson-mo/goaurrpc/internal/aur"
 )

@@ -1,10 +1,11 @@
 package config
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/goccy/go-json"
 )
 
 // Settings is a data structure holding our configuration data
