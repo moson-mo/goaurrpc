@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/goccy/go-json"
-	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	"github.com/moson-mo/goaurrpc/internal/doc"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
@@ -38,7 +38,7 @@ type server struct {
 	veryVerbose bool
 	ver         string
 	lastRefresh time.Time
-	router      *mux.Router
+	router      chi.Router
 }
 
 // New creates a new server and immediately loads package data into memory
@@ -119,7 +119,7 @@ func (s *server) Stop() {
 // set up our routes
 func (s *server) setupRoutes() {
 	// routes
-	s.router = mux.NewRouter()
+	s.router = chi.NewRouter()
 
 	s.router.HandleFunc("/rpc", s.rpcHandler)
 	s.router.HandleFunc("/rpc/", s.rpcHandler)
@@ -139,10 +139,10 @@ func (s *server) setupRoutes() {
 
 	// admin api
 	if s.settings.EnableAdminApi {
-		s.router.Handle("/admin/run-job/{name}", s.rpcAdminMiddleware(s.rpcAdminJobsHandler)).Methods("POST")
-		s.router.Handle("/admin/settings/{name}", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
-		s.router.Handle("/admin/settings", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
-		s.router.Handle("/admin/settings/", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler)).Methods("POST", "GET")
+		s.router.Handle("/admin/run-job/{name}", s.rpcAdminMiddleware(s.rpcAdminJobsHandler))
+		s.router.Handle("/admin/settings/{name}", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler))
+		s.router.Handle("/admin/settings", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler))
+		s.router.Handle("/admin/settings/", s.rpcAdminMiddleware(s.rpcAdminSettingsHandler))
 	}
 
 	// swagger
@@ -177,13 +177,18 @@ func (s *server) rpcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// override query string if we have path variables
-	vars := mux.Vars(r)
-	if len(vars) > 0 {
-		values.Set("v", vars["version"])
-		values.Set("type", vars["type"])
-		if vars["name"] != "" {
-			values.Set("arg", vars["name"])
-		}
+	vp := chi.URLParam(r, "version")
+	tp := chi.URLParam(r, "type")
+	np := chi.URLParam(r, "name")
+
+	if vp != "" {
+		values.Set("v", vp)
+	}
+	if tp != "" {
+		values.Set("type", tp)
+	}
+	if np != "" {
+		values.Set("arg", np)
 	}
 
 	// get API parameters

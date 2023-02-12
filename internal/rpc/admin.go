@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/goccy/go-json"
-	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 )
 
@@ -29,8 +29,7 @@ func (s *server) rpcAdminMiddleware(hf http.HandlerFunc) http.Handler {
 
 // handles jobs
 func (s *server) rpcAdminJobsHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	name := vars["name"]
+	name := chi.URLParam(r, "name")
 
 	switch name {
 	case "reload-data":
@@ -64,8 +63,7 @@ func (s *server) rpcAdminJobsHandler(w http.ResponseWriter, r *http.Request) {
 
 // handles settings
 func (s *server) rpcAdminSettingsHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	name := strings.ToLower(vars["name"])
+	name := strings.ToLower(chi.URLParam(r, "name"))
 	isPost := r.Method == "POST"
 	value := r.URL.Query().Get("value")
 
