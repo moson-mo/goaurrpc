@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goccy/go-json"
-
 	"github.com/moson-mo/goaurrpc/internal/aur"
+
+	"github.com/goccy/go-json"
 )
 
 // LoadDbFromFile loads package data from local JSON file

@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/goccy/go-json"
-
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"github.com/moson-mo/goaurrpc/internal/metrics"
+
+	"github.com/goccy/go-json"
 	"gopkg.in/guregu/null.v4"
 )
 

@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/goccy/go-json"
-
-	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/goccy/go-json"
 )
 
 // middleware for authentication (API key)
@@ -30,8 +30,7 @@ func (s *server) adminMiddleware(hf http.HandlerFunc) http.Handler {
 
 // handles jobs
 func (s *server) handleAdminJobs(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	name := vars["name"]
+	name := chi.URLParam(r, "name")
 
 	switch name {
 	case "reload-data":
@@ -65,8 +64,7 @@ func (s *server) handleAdminJobs(w http.ResponseWriter, r *http.Request) {
 
 // handles settings
 func (s *server) handleAdminSettings(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	name := strings.ToLower(vars["name"])
+	name := chi.URLParam(r, "name")
 	isPost := r.Method == "POST"
 	value := r.URL.Query().Get("value")
 

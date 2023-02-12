@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +26,7 @@ var testUrls = []string{
 
 func TestSwagger(t *testing.T) {
 
-	r := mux.NewRouter()
+	r := chi.NewRouter()
 
 	r.HandleFunc("/rpc/swagger", SwaggerRpcHandler)
 	r.HandleFunc("/rpc/swagger/", SwaggerRpcHandler)

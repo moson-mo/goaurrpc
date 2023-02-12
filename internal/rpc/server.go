@@ -13,13 +13,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/goccy/go-json"
-
-	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	"github.com/moson-mo/goaurrpc/internal/doc"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"github.com/moson-mo/goaurrpc/internal/metrics"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/goccy/go-json"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/guregu/null.v4"
@@ -39,7 +39,7 @@ type server struct {
 	veryVerbose bool
 	ver         string
 	lastRefresh time.Time
-	router      *mux.Router
+	router      chi.Router
 }
 
 // New creates a new server and immediately loads package data into memory
@@ -120,7 +120,7 @@ func (s *server) Stop() {
 // set up our routes
 func (s *server) setupRoutes() {
 	// routes
-	s.router = mux.NewRouter()
+	s.router = chi.NewRouter()
 
 	s.router.HandleFunc("/rpc", s.handleRequest)
 	s.router.HandleFunc("/rpc/", s.handleRequest)
@@ -148,10 +148,10 @@ func (s *server) setupRoutes() {
 
 	// admin api
 	if s.conf.EnableAdminApi {
-		s.router.Handle("/admin/run-job/{name}", s.adminMiddleware(s.handleAdminJobs)).Methods("POST")
-		s.router.Handle("/admin/settings/{name}", s.adminMiddleware(s.handleAdminSettings)).Methods("POST", "GET")
-		s.router.Handle("/admin/settings", s.adminMiddleware(s.handleAdminSettings)).Methods("POST", "GET")
-		s.router.Handle("/admin/settings/", s.adminMiddleware(s.handleAdminSettings)).Methods("POST", "GET")
+		s.router.Handle("/admin/run-job/{name}", s.adminMiddleware(s.handleAdminJobs))
+		s.router.Handle("/admin/settings/{name}", s.adminMiddleware(s.handleAdminSettings))
+		s.router.Handle("/admin/settings", s.adminMiddleware(s.handleAdminSettings))
+		s.router.Handle("/admin/settings/", s.adminMiddleware(s.handleAdminSettings))
 	}
 
 	// swagger
@@ -286,19 +286,26 @@ func (s *server) composeParameters(r *http.Request) url.Values {
 	}
 
 	// set parameters from path variables
-	vars := mux.Vars(r)
-	if len(vars) > 0 {
-		params.Set("v", vars["version"])
-		params.Set("type", vars["type"])
-		if vars["by"] != "" {
-			params.Set("by", vars["by"])
-		}
-		if vars["mode"] != "" {
-			params.Set("mode", vars["mode"])
-		}
-		if vars["arg"] != "" {
-			params.Set("arg", vars["arg"])
-		}
+	vp := chi.URLParam(r, "version")
+	tp := chi.URLParam(r, "type")
+	ap := chi.URLParam(r, "arg")
+	bp := chi.URLParam(r, "by")
+	mp := chi.URLParam(r, "mode")
+
+	if vp != "" {
+		params.Set("v", vp)
+	}
+	if tp != "" {
+		params.Set("type", tp)
+	}
+	if ap != "" {
+		params.Set("arg", ap)
+	}
+	if bp != "" {
+		params.Set("by", bp)
+	}
+	if mp != "" {
+		params.Set("mode", mp)
 	}
 
 	return params
