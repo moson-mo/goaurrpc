@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -14,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/goccy/go-json"
 	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 	"github.com/moson-mo/goaurrpc/internal/doc"

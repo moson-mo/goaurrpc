@@ -1,12 +1,12 @@
 package rpc
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/goccy/go-json"
 	"github.com/gorilla/mux"
 	"github.com/moson-mo/goaurrpc/internal/config"
 )
