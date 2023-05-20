@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+var client = &http.Client{
+	Timeout: 10 * time.Second,
+}
+
 // DownloadPackageData downloads package data file from AUR; decompression happens automatically
 func DownloadPackageData(address string, lastmod time.Time) ([]byte, time.Time, error) {
 	req, err := http.NewRequest("GET", address, nil)
@@ -15,15 +19,16 @@ func DownloadPackageData(address string, lastmod time.Time) ([]byte, time.Time, 
 	}
 	req.Header.Set("If-Modified-Since", lastmod.Format(http.TimeFormat))
 
-	r, err := http.DefaultClient.Do(req)
+	r, err := client.Do(req)
 	if err != nil {
 		return nil, lastmod, err
 	}
+	defer r.Body.Close()
+
 	if r.StatusCode == 304 {
+		io.Copy(io.Discard, r.Body)
 		return nil, lastmod, errors.New("not modified")
 	}
-
-	defer r.Body.Close()
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
