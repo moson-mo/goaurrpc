@@ -22,6 +22,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/guregu/null.v4"
+
+	"net/http/pprof"
 )
 
 // API server struct
@@ -155,6 +157,14 @@ func (s *server) setupRoutes() {
 	s.router.HandleFunc("/rpc/openapi.json", doc.SpecRpcHandler)
 	s.router.HandleFunc("/admin/openapi.json", doc.SpecAdminHandler)
 	s.router.HandleFunc("/rpc/olddoc.html", doc.SpecOldHandler)
+
+	// pprof
+	s.router.HandleFunc("/debug/pprof/", pprof.Index)
+	s.router.HandleFunc("/debug/pprof/heap", pprof.Index)
+	s.router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	s.router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	s.router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	s.router.HandleFunc("/debug/pprof/trace", pprof.Trace)
 }
 
 // handles client connections
