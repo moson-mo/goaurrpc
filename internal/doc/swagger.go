@@ -64,15 +64,18 @@ func SwaggerAdminHandler(w http.ResponseWriter, r *http.Request) {
 
 // SpecRpcHandler handles calls to the openapi spec for /rpc
 func SpecRpcHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(openApiRpc)
 }
 
 // SpecApiHandler handles calls to the openapi spec for /api
 func SpecApiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(openApiApi)
 }
 
 // SpecAdminHandler handles calls to the openapi spec for /admin
 func SpecAdminHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(openApiAdmin)
 }
