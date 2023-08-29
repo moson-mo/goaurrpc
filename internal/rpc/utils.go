@@ -25,6 +25,8 @@ var queryTypes = []string{
 	"msearch",
 	"suggest",
 	"suggest-pkgbase",
+	"opensearch-suggest",
+	"opensearch-suggest-pkgbase",
 }
 
 // allowed "by" values

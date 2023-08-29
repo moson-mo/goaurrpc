@@ -186,6 +186,58 @@
         }
       }
     },
+    "/api/v6/opensearch-suggest/{arg}": {
+      "get": {
+        "tags": [
+          "Suggest"
+        ],
+        "description": "### Returns a list of package-names starting with {arg} in the OpenSearch format\n#### *(max 20 results)*\n",
+        "summary": "Package name search (starts-with) in OpenSearch format",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ArgPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "application/x-suggestions+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageNamesOpenSearch"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v6/opensearch-suggest-pkgbase/{arg}": {
+      "get": {
+        "tags": [
+          "Suggest"
+        ],
+        "description": "### Returns a list of package-base-names starting with {arg} in the OpenSearch format\n#### *(max 20 results)*\n",
+        "summary": "Package base search (starts-with) in OpenSearch format",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ArgPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggest results",
+            "content": {
+              "application/x-suggestions+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageNamesOpenSearch"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v6/info/{arg}": {
       "get": {
         "tags": [
@@ -339,6 +391,22 @@
         "type": "array",
         "items": {
           "type": "string"
+        }
+      },
+      "PackageNamesOpenSearch": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
         }
       },
       "PackageData": {

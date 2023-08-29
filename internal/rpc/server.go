@@ -229,16 +229,31 @@ func (s *server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	metrics.Requests.WithLabelValues(r.Method, rtype, by).Inc()
 
 	// handle suggest calls
-	if rtype == "suggest" || rtype == "suggest-pkgbase" {
+	if rtype == "suggest" || rtype == "suggest-pkgbase" || rtype == "opensearch-suggest" || rtype == "opensearch-suggest-pkgbase" {
 		s.mut.RLock()
-		b, err := json.Marshal(s.getSuggestResult(arg, (rtype == "suggest-pkgbase")))
+		results := s.getSuggestResult(arg, (rtype == "suggest-pkgbase" || rtype == "opensearch-suggest-pkgbase"))
 		s.mut.RUnlock()
+
+		var b []byte
+		var err error
+		if rtype == "opensearch-suggest" || rtype == "opensearch-suggest-pkgbase" {
+			b, err = json.Marshal([]interface{}{params.Get("arg"), results})
+		} else {
+			b, err = json.Marshal(results)
+		}
+
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprintf(w, "")
 			return
 		}
-		w.Header().Add("Content-Type", consts.ContentTypeJson)
+
+		if rtype == "opensearch-suggest" || rtype == "opensearch-suggest-pkgbase" {
+			w.Header().Set("Content-Type", consts.ContentTypeOpenSearchSuggestion)
+		} else {
+			w.Header().Set("Content-Type", consts.ContentTypeJson)
+		}
+
 		w.Write(b)
 		return
 	}

@@ -26,9 +26,6 @@ type RpcTestSuite struct {
 	suite.Suite
 	srv                      *server
 	httpSrv                  *http.Server
-	ContentTypeJson          string
-	ContentTypeText          string
-	ContentTypeHtml          string
 	ExpectedRpcResults       map[string]responseResult
 	ExpectedArgumentsList    map[*url.Values][]string
 	ExpectedArguments        map[*url.Values]string
@@ -101,6 +98,15 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/rpc?v=5&type=suggest-pkgbase&arg=at":                 {`["attest","attestation","attestations","attested","attesting","attests","attic","atticas","attics","attila","attire","attired","attires","attitude","attitudes","attitudinal","attitudinize","attitudinized","attitudinizing","attlee"]`, consts.ContentTypeJson},
 		"/rpc?v=5&type=suggest-pkgbase&arg=":                   {`["attest","attestation","attestations","attested","attesting","attests","attic","atticas","attics","attila","attire","attired","attires","attitude","attitudes","attitudinal","attitudinize","attitudinized","attitudinizing","attlee"]`, consts.ContentTypeJson},
 		"/rpc?v=5&type=suggest-pkgbase&arg=test":               {`[]`, consts.ContentTypeJson},
+		"/rpc?v=5&type=opensearch-suggest&arg=at":              {`["at",["attest","attestation","attestations","attested","attesting","attests","attic","atticas","attics","attila","attire","attired","attires","attitude","attitudes","attitudinal","attitudinize","attitudinized","attitudinizing","attlee"]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest&arg=":                {`["",["attest","attestation","attestations","attested","attesting","attests","attic","atticas","attics","attila","attire","attired","attires","attitude","attitudes","attitudinal","attitudinize","attitudinized","attitudinizing","attlee"]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest&arg=attest":          {`["attest",["attest","attestation","attestations","attested","attesting","attests"]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest&arg=test":            {`["test",[]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest-pkgbase&arg=attest":  {`["attest",["attest","attestation","attestations","attested","attesting","attests"]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest-pkgbase&arg=aTTest":  {`["aTTest",["attest","attestation","attestations","attested","attesting","attests"]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest-pkgbase&arg=at":      {`["at",["attest","attestation","attestations","attested","attesting","attests","attic","atticas","attics","attila","attire","attired","attires","attitude","attitudes","attitudinal","attitudinize","attitudinized","attitudinizing","attlee"]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest-pkgbase&arg=":        {`["",["attest","attestation","attestations","attested","attesting","attests","attic","atticas","attics","attila","attire","attired","attires","attitude","attitudes","attitudinal","attitudinize","attitudinized","attitudinizing","attlee"]]`, consts.ContentTypeOpenSearchSuggestion},
+		"/rpc?v=5&type=opensearch-suggest-pkgbase&arg=test":    {`["test",[]]`, consts.ContentTypeOpenSearchSuggestion},
 		"/rpc?v=5&type=search&by=depends&arg=chrystals":        {`{"resultcount":1,"results":[{"Description":"This is a desciptive text for package attics","FirstSubmitted":1644749267,"ID":6877,"LastModified":1644749267,"Maintainer":"supergrasses","Name":"attics","NumVotes":42,"OutOfDate":null,"PackageBase":"attics","PackageBaseID":6877,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attics.tar.gz","Version":"8.5-10"}],"type":"search","version":5}`, consts.ContentTypeJson},
 		"/rpc/v5/search/chrystals?by=depends":                  {`{"resultcount":1,"results":[{"Description":"This is a desciptive text for package attics","FirstSubmitted":1644749267,"ID":6877,"LastModified":1644749267,"Maintainer":"supergrasses","Name":"attics","NumVotes":42,"OutOfDate":null,"PackageBase":"attics","PackageBaseID":6877,"Popularity":0,"URL":null,"URLPath":"/cgit/aur.git/snapshot/attics.tar.gz","Version":"8.5-10"}],"type":"search","version":5}`, consts.ContentTypeJson},
 		"/rpc?v=5&type=search&by=depends&arg=x":                {`{"error":"Query arg too small.","resultcount":0,"results":[],"type":"error","version":5}`, consts.ContentTypeJson},
