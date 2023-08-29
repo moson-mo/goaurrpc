@@ -46,19 +46,19 @@ const swaggerUi = `
 
 // SwaggerRpcHandler handles calls to the swagger-ui of /rpc
 func SwaggerRpcHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, swaggerUi, "rpc")
 }
 
 // SwaggerApiHandler handles calls to the swagger-ui of /api
 func SwaggerApiHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, swaggerUi, "api")
 }
 
 // SwaggerAdminHandler handles calls to the swagger-ui of /admin
 func SwaggerAdminHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, swaggerUi, "admin")
 }
 

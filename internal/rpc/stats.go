@@ -19,7 +19,7 @@ number of packages:		%d
 func (s *server) handleStats(w http.ResponseWriter, r *http.Request) {
 	ip := getRealIP(r, s.conf.TrustedReverseProxies)
 	s.LogVeryVerbose("Client connected:", ip, "->", "["+r.Method+"]", r.URL)
-	w.Header().Add("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	s.mut.RLock()
 	defer s.mut.RUnlock()
 	np := len(s.memDB.PackageSlice)
