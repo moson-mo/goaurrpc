@@ -213,6 +213,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/admin/settings/cache-expiration-time":       {`Current setting for 'CacheExpirationTime' is '300'`, suite.ContentTypeText},
 		"/admin/settings/enable-search-cache":         {`Current setting for 'EnableSearchCache' is 'true'`, suite.ContentTypeText},
 		"/admin/settings":                             {"{\n\t\"Port\": 10667,\n\t\"AurFileLocation\": \"../../test_data/test_packages.json\",\n\t\"MaxResults\": 5000,\n\t\"RefreshInterval\": 600,\n\t\"RateLimit\": 4000,\n\t\"LoadFromFile\": true,\n\t\"RateLimitCleanupInterval\": 600,\n\t\"RateLimitTimeWindow\": 86400,\n\t\"TrustedReverseProxies\": [\n\t\t\"127.0.0.1\",\n\t\t\"::1\"\n\t],\n\t\"EnableSSL\": false,\n\t\"CertFile\": \"\",\n\t\"KeyFile\": \"\",\n\t\"EnableSearchCache\": true,\n\t\"CacheCleanupInterval\": 60,\n\t\"CacheExpirationTime\": 300,\n\t\"LogFile\": \"/tmp/log.tst\",\n\t\"EnableMetrics\": true,\n\t\"EnableAdminApi\": true,\n\t\"AdminAPIKey\": \"test\"\n}", suite.ContentTypeJson},
+		"/admin/settings/":                            {"{\n\t\"Port\": 10667,\n\t\"AurFileLocation\": \"../../test_data/test_packages.json\",\n\t\"MaxResults\": 5000,\n\t\"RefreshInterval\": 600,\n\t\"RateLimit\": 4000,\n\t\"LoadFromFile\": true,\n\t\"RateLimitCleanupInterval\": 600,\n\t\"RateLimitTimeWindow\": 86400,\n\t\"TrustedReverseProxies\": [\n\t\t\"127.0.0.1\",\n\t\t\"::1\"\n\t],\n\t\"EnableSSL\": false,\n\t\"CertFile\": \"\",\n\t\"KeyFile\": \"\",\n\t\"EnableSearchCache\": true,\n\t\"CacheCleanupInterval\": 60,\n\t\"CacheExpirationTime\": 300,\n\t\"LogFile\": \"/tmp/log.tst\",\n\t\"EnableMetrics\": true,\n\t\"EnableAdminApi\": true,\n\t\"AdminAPIKey\": \"test\"\n}", suite.ContentTypeJson},
 	}
 
 	suite.ExpectedAdminResultsPOST = map[string]string{
@@ -252,6 +253,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/admin/settings/nonsense":                            `Setting not found`,
 		"/admin/settings/max-results?value=0":                 `Value can not be 0`,
 		"/admin/settings":                                     `Setting not found`,
+		"/admin/settings/":                                    `Setting not found`,
 	}
 
 	var err error
