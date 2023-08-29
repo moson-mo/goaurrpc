@@ -226,6 +226,7 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/admin/settings/aur-file-location?value=xyz":         `Changed 'AurFileLocation' from '../../test_data/test_packages.json' to 'xyz'`,
 		"/admin/settings/aur-file-location":                   `Need new value: ?value=...`,
 		"/admin/settings/max-results?value=1":                 `Changed 'MaxResults' from '5000' to '1'`,
+		"/admin/settings/max-results?value=0":                 `Value can not be 0`,
 		"/admin/settings/max-results?value=x":                 `strconv.Atoi: parsing "x": invalid syntax`,
 		"/admin/settings/max-results":                         `Need new value: ?value=...`,
 		"/admin/settings/refresh-interval?value=1":            `Changed 'RefreshInterval' from '600' to '1'`,
@@ -251,7 +252,6 @@ func (suite *RpcTestSuite) SetupSuite() {
 		"/admin/settings/enable-search-cache?value=x":         `strconv.ParseBool: parsing "x": invalid syntax`,
 		"/admin/settings/enable-search-cache":                 `Need new value: ?value=...`,
 		"/admin/settings/nonsense":                            `Setting not found`,
-		"/admin/settings/max-results?value=0":                 `Value can not be 0`,
 		"/admin/settings":                                     `Setting not found`,
 		"/admin/settings/":                                    `Setting not found`,
 	}
