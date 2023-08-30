@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -229,18 +230,26 @@ func (s *server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	metrics.Requests.WithLabelValues(r.Method, rtype, by).Inc()
 
 	// handle suggest calls
-	if rtype == "suggest" || rtype == "suggest-pkgbase" || rtype == "opensearch-suggest" || rtype == "opensearch-suggest-pkgbase" {
+	if strings.Contains(rtype, "suggest") {
+		isOpenSearch := strings.HasPrefix(rtype, "opensearch")
+		isBaseSearch := strings.HasSuffix(rtype, "pkgbase")
+
 		s.mut.RLock()
-		results := s.getSuggestResult(arg, (rtype == "suggest-pkgbase" || rtype == "opensearch-suggest-pkgbase"))
+		results := s.getSuggestResult(arg, isBaseSearch)
 		s.mut.RUnlock()
 
-		var b []byte
-		var err error
-		if rtype == "opensearch-suggest" || rtype == "opensearch-suggest-pkgbase" {
-			b, err = json.Marshal([]interface{}{params.Get("arg"), results})
+		var content any
+		var contentType string
+
+		if isOpenSearch {
+			content = []interface{}{params.Get("arg"), results}
+			contentType = consts.ContentTypeOSS
 		} else {
-			b, err = json.Marshal(results)
+			content = results
+			contentType = consts.ContentTypeJson
 		}
+
+		b, err := json.Marshal(content)
 
 		if err != nil {
 			w.WriteHeader(500)
@@ -248,12 +257,7 @@ func (s *server) handleRequest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if rtype == "opensearch-suggest" || rtype == "opensearch-suggest-pkgbase" {
-			w.Header().Set("Content-Type", consts.ContentTypeOpenSearchSuggestion)
-		} else {
-			w.Header().Set("Content-Type", consts.ContentTypeJson)
-		}
-
+		w.Header().Set("Content-Type", contentType)
 		w.Write(b)
 		return
 	}
