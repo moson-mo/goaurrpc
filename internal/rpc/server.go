@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/moson-mo/goaurrpc/internal/config"
+	"github.com/moson-mo/goaurrpc/internal/consts"
 	"github.com/moson-mo/goaurrpc/internal/doc"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"github.com/moson-mo/goaurrpc/internal/metrics"
@@ -237,7 +238,7 @@ func (s *server) handleRequest(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "")
 			return
 		}
-		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Content-Type", consts.ContentTypeJson)
 		w.Write(b)
 		return
 	}

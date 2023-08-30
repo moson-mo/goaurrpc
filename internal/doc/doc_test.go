@@ -7,21 +7,22 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/moson-mo/goaurrpc/internal/consts"
 	"github.com/stretchr/testify/assert"
 )
 
 var testUrls = map[string]string{
-	"/rpc/swagger": "text/html; charset=utf-8",
-	"/rpc/swagger/": "text/html; charset=utf-8",
-	"/api/swagger": "text/html; charset=utf-8",
-	"/api/swagger/": "text/html; charset=utf-8",
-	"/admin/swagger": "text/html; charset=utf-8",
-	"/admin/swagger/": "text/html; charset=utf-8",
-	"/nonsense/swagger/": "text/plain; charset=utf-8",
-	"/rpc/swagger/openapi.json": "application/json",
-	"/api/swagger/openapi.json": "application/json",
-	"/admin/swagger/openapi.json": "application/json",
-	"/rpc/olddoc.html": "text/html; charset=utf-8",
+	"/rpc/swagger":                consts.ContentTypeHtml,
+	"/rpc/swagger/":               consts.ContentTypeHtml,
+	"/api/swagger":                consts.ContentTypeHtml,
+	"/api/swagger/":               consts.ContentTypeHtml,
+	"/admin/swagger":              consts.ContentTypeHtml,
+	"/admin/swagger/":             consts.ContentTypeHtml,
+	"/nonsense/swagger/":          consts.ContentTypeText,
+	"/rpc/swagger/openapi.json":   consts.ContentTypeJson,
+	"/api/swagger/openapi.json":   consts.ContentTypeJson,
+	"/admin/swagger/openapi.json": consts.ContentTypeJson,
+	"/rpc/olddoc.html":            consts.ContentTypeHtml,
 }
 
 func TestSwagger(t *testing.T) {

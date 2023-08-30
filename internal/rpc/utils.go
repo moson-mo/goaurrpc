@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/moson-mo/goaurrpc/internal/consts"
 	db "github.com/moson-mo/goaurrpc/internal/memdb"
 	"github.com/moson-mo/goaurrpc/internal/metrics"
 
@@ -185,12 +186,12 @@ func writeResult(result *RpcResult, callback string, w http.ResponseWriter) {
 // sends data to client
 func sendResult(code int, callback string, b []byte, w http.ResponseWriter) {
 	if callback != "" {
-		w.Header().Set("Content-Type", "text/javascript")
+		w.Header().Set("Content-Type", consts.ContentTypeJS)
 		w.WriteHeader(code)
 		fmt.Fprintf(w, "/**/%s(%s)", callback, string(b))
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", consts.ContentTypeJson)
 	w.WriteHeader(code)
 	w.Write(b)
 }

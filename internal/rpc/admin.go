@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/moson-mo/goaurrpc/internal/config"
+	"github.com/moson-mo/goaurrpc/internal/consts"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/goccy/go-json"
@@ -19,7 +20,7 @@ func (s *server) adminMiddleware(hf http.HandlerFunc) http.Handler {
 
 		// check api key
 		if key != s.conf.AdminAPIKey {
-			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Header().Set("Content-Type", consts.ContentTypeText)
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized"))
 			return
@@ -58,7 +59,7 @@ func (s *server) handleAdminJobs(w http.ResponseWriter, r *http.Request) {
 		s.cleanupRateLimits()
 		sendAdminOk("Cleaned up rate-limits", w)
 	default:
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", consts.ContentTypeText)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Job not found"))
 	}
@@ -102,7 +103,7 @@ func sendSettings(settings config.Settings, w http.ResponseWriter) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", consts.ContentTypeJson)
 	w.Write(b)
 }
 
@@ -264,7 +265,7 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 		}
 		sendAdminOk("Current setting for 'EnableSearchCache' is '"+pval+"'", w)
 	default:
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("Content-Type", consts.ContentTypeText)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Setting not found"))
 	}
@@ -272,14 +273,14 @@ func (s *server) sendChangeOption(name, value string, isPost bool, w http.Respon
 
 // returns error result
 func sendAdminError(message string, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", consts.ContentTypeText)
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Write([]byte(message))
 }
 
 // returns OK result
 func sendAdminOk(message string, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", consts.ContentTypeText)
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte(message))
 }

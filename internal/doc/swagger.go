@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"fmt"
 	"net/http"
+
+	"github.com/moson-mo/goaurrpc/internal/consts"
 )
 
 //go:embed openapi_rpc.json
@@ -46,36 +48,36 @@ const swaggerUi = `
 
 // SwaggerRpcHandler handles calls to the swagger-ui of /rpc
 func SwaggerRpcHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	w.Header().Add("Content-Type", consts.ContentTypeHtml)
 	fmt.Fprintf(w, swaggerUi, "rpc")
 }
 
 // SwaggerApiHandler handles calls to the swagger-ui of /api
 func SwaggerApiHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	w.Header().Add("Content-Type", consts.ContentTypeHtml)
 	fmt.Fprintf(w, swaggerUi, "api")
 }
 
 // SwaggerAdminHandler handles calls to the swagger-ui of /admin
 func SwaggerAdminHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	w.Header().Add("Content-Type", consts.ContentTypeHtml)
 	fmt.Fprintf(w, swaggerUi, "admin")
 }
 
 // SpecRpcHandler handles calls to the openapi spec for /rpc
 func SpecRpcHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Content-Type", consts.ContentTypeJson)
 	w.Write(openApiRpc)
 }
 
 // SpecApiHandler handles calls to the openapi spec for /api
 func SpecApiHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Content-Type", consts.ContentTypeJson)
 	w.Write(openApiApi)
 }
 
 // SpecAdminHandler handles calls to the openapi spec for /admin
 func SpecAdminHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Content-Type", consts.ContentTypeJson)
 	w.Write(openApiAdmin)
 }
