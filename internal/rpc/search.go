@@ -46,6 +46,12 @@ func (s *server) search(arg, by, mode string, v6 bool) ([]string, bool) {
 				found = append(found, pkg.Name)
 			}
 		}
+	case "packager":
+		if pkgs, f := s.memDB.References["p-"+arg]; f {
+			for _, pkg := range pkgs {
+				found = append(found, pkg.Name)
+			}
+		}
 	case "depends":
 		if pkgs, f := s.memDB.References["dep-"+arg]; f {
 			for _, pkg := range pkgs {

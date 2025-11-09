@@ -25,6 +25,7 @@ type PackageInfo struct {
 	OutOfDate      int      `json:"OutOfDate"`
 	Maintainer     string   `json:"Maintainer"`
 	Submitter      string   `json:"Submitter"`
+	Packager       string   `json:"Packager"`
 	FirstSubmitted int      `json:"FirstSubmitted"`
 	LastModified   int      `json:"LastModified"`
 	URLPath        string   `json:"URLPath"`

@@ -36,6 +36,7 @@ var queryBy = []string{
 	"name-desc",
 	"maintainer",
 	"submitter",
+	"packager",
 	"depends",
 	"makedepends",
 	"optdepends",
@@ -87,7 +88,7 @@ func validateParameters(params url.Values) error {
 	if v == "6" && len(arg) == 0 {
 		return errors.New("No request data specified.")
 	}
-	if !hasArg && !hasArgArr && by != "maintainer" {
+	if !hasArg && !hasArgArr && by != "maintainer" && by != "packager" {
 		return errors.New("No request type/data specified.")
 	}
 	if ((hasArg && len(params.Get("arg")) < 2) || (hasArgArr && len(params.Get("arg[]")) < 2)) &&
@@ -233,6 +234,7 @@ func convDbPkgToInfoRecord(dbp *db.PackageInfo) InfoRecord {
 		OutOfDate:      null.NewInt(int64(dbp.OutOfDate), dbp.OutOfDate != 0),
 		Maintainer:     null.NewString(dbp.Maintainer, dbp.Maintainer != ""),
 		Submitter:      dbp.Submitter,
+		Packager:       dbp.Packager,
 		FirstSubmitted: dbp.FirstSubmitted,
 		LastModified:   dbp.LastModified,
 		URLPath:        null.NewString(dbp.URLPath, dbp.URLPath != ""),
@@ -275,6 +277,7 @@ func convDbPkgToPackageData(dbp *db.PackageInfo) PackageData {
 		OutOfDate:      dbp.OutOfDate,
 		Maintainer:     dbp.Maintainer,
 		Submitter:      dbp.Submitter,
+		Packager:       dbp.Packager,
 		FirstSubmitted: dbp.FirstSubmitted,
 		LastModified:   dbp.LastModified,
 		URLPath:        dbp.URLPath,
@@ -303,6 +306,7 @@ func convDbPkgToSearchRecord(dbp *db.PackageInfo) SearchRecord {
 		FirstSubmitted: dbp.FirstSubmitted,
 		LastModified:   dbp.LastModified,
 		Maintainer:     null.NewString(dbp.Maintainer, dbp.Maintainer != ""),
+		Packager:       dbp.Packager,
 		Name:           dbp.Name,
 		NumVotes:       dbp.NumVotes,
 		OutOfDate:      null.NewInt(int64(dbp.OutOfDate), dbp.OutOfDate != 0),

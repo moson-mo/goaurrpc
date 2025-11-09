@@ -40,6 +40,7 @@ type InfoRecord struct {
 	Provides       []string    `json:"Provides,omitempty"`
 	Replaces       []string    `json:"Replaces,omitempty"`
 	Submitter      string      `json:"Submitter,omitempty"`
+	Packager       string      `json:"Packager,omitempty"`
 	URL            null.String `json:"URL"`
 	URLPath        null.String `json:"URLPath"`
 	Version        string      `json:"Version"`
@@ -55,6 +56,7 @@ type PackageData struct {
 	URLPath        string   `json:"URLPath,omitempty"`
 	Maintainer     string   `json:"Maintainer,omitempty"`
 	Submitter      string   `json:"Submitter,omitempty"`
+	Packager       string   `json:"Packager,omitempty"`
 	FirstSubmitted int      `json:"FirstSubmitted,omitempty"`
 	LastModified   int      `json:"LastModified,omitempty"`
 	OutOfDate      int      `json:"OutOfDate,omitempty"`
@@ -80,6 +82,7 @@ type SearchRecord struct {
 	ID             int         `json:"ID"`
 	LastModified   int         `json:"LastModified"`
 	Maintainer     null.String `json:"Maintainer"`
+	Packager       string      `json:"Packager,omitempty"`
 	Name           string      `json:"Name"`
 	NumVotes       int         `json:"NumVotes"`
 	OutOfDate      null.Int    `json:"OutOfDate"`

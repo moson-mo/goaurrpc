@@ -442,6 +442,10 @@
           "Submitter": {
             "type": "string"
           },
+          "Packager": {
+            "type": "string",
+            "description": "From AUR web interface as `Last Packager`"
+          },
           "FirstSubmitted": {
             "type": "integer",
             "description": "UNIX timestamp"
@@ -633,6 +637,7 @@
             "makedepends",
             "maintainer",
             "submitter",
+            "packager",
             "provides",
             "conflicts",
             "replaces",
@@ -657,6 +662,7 @@
             "makedepends",
             "maintainer",
             "submitter",
+            "packager",
             "provides",
             "conflicts",
             "replaces",
@@ -729,6 +735,7 @@
                     "makedepends",
                     "maintainer",
                     "submitter",
+                    "packager",
                     "provides",
                     "conflicts",
                     "replaces",
